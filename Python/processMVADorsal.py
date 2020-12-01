@@ -73,7 +73,7 @@ for file in entries:
 
                 cvFF.append(np.std(dat.FFMeanP[landing:landing+45]) / np.mean(dat.FFMeanP[landing:landing+45]))
                 cvMets.append(np.std(dat.MetsMeanP[landing:landing+45]) / np.mean(dat.MetsMeanP[landing:landing+45]))
-                maxFF.append(np.max(dat.MFMaxP[landing:landing+45]))
+                maxFF.append(np.max(dat.FFMaxP[landing:landing+45]))
                 maxMF.append(np.max(dat.MFMaxP[landing:landing+45]))
                 maxMets.append(np.max(dat.MetsMaxP[landing:landing+45]))
                 cvMF.append(np.std(dat.MFMeanP[landing:landing+45]) / np.mean(dat.MFMeanP[landing:landing+45]))
@@ -92,23 +92,44 @@ for file in entries:
 outcomes = pd.DataFrame({'Trial':list(trial), 'cvMF': list(cvMF), 'cvFF':list(cvFF), 'cvMets':list(cvMets),
                          'maxFF':list(maxFF), 'maxMF':list(maxMF), 'maxMets':list(maxMets), 'maxPlantMetP':list(maxPlantMetP),
                          'maxToeP':list(maxToeP),'maxHeelP':list(maxHeelP)})
-#
-#fig, ax1 = plt.subplots()
-#
-#color = 'tab:red'
-#ax1.set_xlabel('time')
-#ax1.set_ylabel('TotalForce(N)', color=color)
-#ax1.plot(dat.Force[40:85], color=color)
-#ax1.tick_params(axis='y', labelcolor=color)
-#
-#ax2 = ax1.twinx()  # instantiate a second axes that shares the same x-axis
-#
-#ax2.set_ylabel('Max Pressures')  # we already handled the x-label with ax1
-#ax2.plot(dat.FFMaxP[40:85])
-#ax2.plot(dat.MetsForce[40:85])
-#ax2.plot(dat.MFMaxP[40:85])
-#plt.legend()
-#
-#fig.tight_layout()  # otherwise the right y-label is slightly clipped
-#plt.show()
-#
+
+    
+## plotting
+fig, ax1 = plt.subplots()
+
+color = 'tab:red'
+ax1.set_xlabel('time')
+ax1.set_ylabel('TotalForce(N)', color=color)
+ax1.plot(dat.Force[landings[1]:landings[1]+45], color=color)
+ax1.tick_params(axis='y', labelcolor=color)
+
+ax2 = ax1.twinx()  # instantiate a second axes that shares the same x-axis
+
+ax2.set_ylabel('Max Pressures')  # we already handled the x-label with ax1
+ax2.plot(dat.FFMaxP[landings[1]:landings[1]+45])
+ax2.plot(dat.MetsMaxP[landings[1]:landings[1]+45])
+ax2.plot(dat.MFMaxP[landings[1]:landings[1]+45])
+plt.legend()
+
+fig.tight_layout()  # otherwise the right y-label is slightly clipped
+plt.show()
+
+# mean pressure
+fig, ax1 = plt.subplots()
+
+color = 'tab:red'
+ax1.set_xlabel('time')
+ax1.set_ylabel('TotalForce(N)', color=color)
+ax1.plot(dat.Force[landings[1]:landings[1]+45], color=color)
+ax1.tick_params(axis='y', labelcolor=color)
+
+ax2 = ax1.twinx()  # instantiate a second axes that shares the same x-axis
+
+ax2.set_ylabel('Max Pressures')  # we already handled the x-label with ax1
+ax2.plot(dat.FFMeanP[landings[1]:landings[1]+45])
+ax2.plot(dat.MetsMeanP[landings[1]:landings[1]+45])
+ax2.plot(dat.MFMeanP[landings[1]:landings[1]+45])
+plt.legend()
+
+fig.tight_layout()  # otherwise the right y-label is slightly clipped
+plt.show()
