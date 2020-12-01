@@ -18,6 +18,7 @@ entries = [fName for fName in os.listdir(fPath) if fName.endswith(fileExt)]
 
 # Define constants and options
 fThresh = 100 #below this value will be set to 0.
+stepLen = 45 #Set value to look forward 
 # list of functions 
 # finding landings on the force plate once the filtered force exceeds the force threshold
 def findLandings(force):
@@ -36,9 +37,12 @@ def findTakeoffs(force):
     return lto
 
 ### File Structure: Dorsal Forefoot, Metatarsals (.1), Midfoot (.2), plantar mets  (.3), plantar toes (.4), plantar heel  (.5)
-cvMF = []
-cvFF = []
-cvMets = []
+sdFF = []
+meanFF = []
+sdMF = []
+meanMF = []
+sdMets = []
+meanMets = []
 maxMF = []
 maxFF = []
 maxMets = []
@@ -71,17 +75,20 @@ for file in entries:
             try:
                # Appending dorsal pressure data
 
-                cvFF.append(np.std(dat.FFMeanP[landing:landing+45]) / np.mean(dat.FFMeanP[landing:landing+45]))
-                cvMets.append(np.std(dat.MetsMeanP[landing:landing+45]) / np.mean(dat.MetsMeanP[landing:landing+45]))
-                maxFF.append(np.max(dat.FFMaxP[landing:landing+45]))
-                maxMF.append(np.max(dat.MFMaxP[landing:landing+45]))
-                maxMets.append(np.max(dat.MetsMaxP[landing:landing+45]))
-                cvMF.append(np.std(dat.MFMeanP[landing:landing+45]) / np.mean(dat.MFMeanP[landing:landing+45]))
+                sdFF.append(np.std(dat.FFMeanP[landing:landing+stepLen])) 
+                meanFF.append(np.mean(dat.FFMeanP[landing:landing+stepLen]))
+                sdMets.append(np.std(dat.MetsMeanP[landing:landing+stepLen]))
+                meanMets.append(np.mean(dat.MetsMeanP[landing:landing+stepLen]))
+                maxFF.append(np.max(dat.FFMaxP[landing:landing+stepLen]))
+                maxMF.append(np.max(dat.MFMaxP[landing:landing+stepLen]))
+                maxMets.append(np.max(dat.MetsMaxP[landing:landing+stepLen]))
+                sdMF.append(np.std(dat.MFMeanP[landing:landing+stepLen])) 
+                meanMF.append(np.mean(dat.MFMeanP[landing:landing+stepLen]))
                 trial.append(fName)
                 # Appending Plantar pressure data
-                maxPlantMetP.append(np.max(dat.PlantMetsMaxP[landing:landing+45]))
-                maxToeP.append(np.max(dat.ToesMaxP[landing:landing+45]))
-                maxHeelP.append(np.max(dat.HeelMaxP[landing:landing+45]))  
+                maxPlantMetP.append(np.max(dat.PlantMetsMaxP[landing:landing+stepLen]))
+                maxToeP.append(np.max(dat.ToesMaxP[landing:landing+stepLen]))
+                maxHeelP.append(np.max(dat.HeelMaxP[landing:landing+stepLen]))  
 
             except:
                 print(landing)
@@ -89,47 +96,48 @@ for file in entries:
         print(file)    
         
        
-outcomes = pd.DataFrame({'Trial':list(trial), 'cvMF': list(cvMF), 'cvFF':list(cvFF), 'cvMets':list(cvMets),
-                         'maxFF':list(maxFF), 'maxMF':list(maxMF), 'maxMets':list(maxMets), 'maxPlantMetP':list(maxPlantMetP),
+outcomes = pd.DataFrame({'Trial':list(trial), 'sdMets': list(sdMets),'meanMets':list(meanMets), 'sdFF':list(sdFF), 'meanFF':list(meanFF),'sdMF':list(sdMF),
+                         'meanMF':list(meanMF),'maxFF':list(maxFF), 'maxMF':list(maxMF), 'maxMets':list(maxMets), 'maxPlantMetP':list(maxPlantMetP),
                          'maxToeP':list(maxToeP),'maxHeelP':list(maxHeelP)})
 
     
 ## plotting
-fig, ax1 = plt.subplots()
-
-color = 'tab:red'
-ax1.set_xlabel('time')
-ax1.set_ylabel('TotalForce(N)', color=color)
-ax1.plot(dat.Force[landings[1]:landings[1]+45], color=color)
-ax1.tick_params(axis='y', labelcolor=color)
-
-ax2 = ax1.twinx()  # instantiate a second axes that shares the same x-axis
-
-ax2.set_ylabel('Max Pressures')  # we already handled the x-label with ax1
-ax2.plot(dat.FFMaxP[landings[1]:landings[1]+45])
-ax2.plot(dat.MetsMaxP[landings[1]:landings[1]+45])
-ax2.plot(dat.MFMaxP[landings[1]:landings[1]+45])
-plt.legend()
-
-fig.tight_layout()  # otherwise the right y-label is slightly clipped
-plt.show()
-
-# mean pressure
-fig, ax1 = plt.subplots()
-
-color = 'tab:red'
-ax1.set_xlabel('time')
-ax1.set_ylabel('TotalForce(N)', color=color)
-ax1.plot(dat.Force[landings[1]:landings[1]+45], color=color)
-ax1.tick_params(axis='y', labelcolor=color)
-
-ax2 = ax1.twinx()  # instantiate a second axes that shares the same x-axis
-
-ax2.set_ylabel('Max Pressures')  # we already handled the x-label with ax1
-ax2.plot(dat.FFMeanP[landings[1]:landings[1]+45])
-ax2.plot(dat.MetsMeanP[landings[1]:landings[1]+45])
-ax2.plot(dat.MFMeanP[landings[1]:landings[1]+45])
-plt.legend()
-
-fig.tight_layout()  # otherwise the right y-label is slightly clipped
-plt.show()
+#landingToPlot = 3
+#fig, ax1 = plt.subplots()
+#
+#color = 'tab:red'
+#ax1.set_xlabel('time')
+#ax1.set_ylabel('TotalForce(N)', color=color)
+#ax1.plot(dat.Force[landings[landingToPlot]:landings[landingToPlot]+stepLen], color=color)
+#ax1.tick_params(axis='y', labelcolor=color)
+#
+#ax2 = ax1.twinx()  # instantiate a second axes that shares the same x-axis
+#
+#ax2.set_ylabel('Max Pressures')  # we already handled the x-label with ax1
+#ax2.plot(dat.FFMaxP[landings[landingToPlot]:landings[landingToPlot]+stepLen])
+#ax2.plot(dat.MetsMaxP[landings[landingToPlot]:landings[landingToPlot]+stepLen])
+#ax2.plot(dat.MFMaxP[landings[landingToPlot]:landings[landingToPlot]+stepLen])
+#plt.legend()
+#
+#fig.tight_layout()  # otherwise the right y-label is slightly clipped
+#plt.show()
+#
+## mean pressure
+#fig, ax1 = plt.subplots()
+#
+#color = 'tab:red'
+#ax1.set_xlabel('time')
+#ax1.set_ylabel('TotalForce(N)', color=color)
+#ax1.plot(dat.Force[landings[landingToPlot]:landings[landingToPlot]+stepLen], color=color)
+#ax1.tick_params(axis='y', labelcolor=color)
+#
+#ax2 = ax1.twinx()  # instantiate a second axes that shares the same x-axis
+#
+#ax2.set_ylabel('Max Pressures')  # we already handled the x-label with ax1
+#ax2.plot(dat.FFMeanP[landings[landingToPlot]:landings[landingToPlot]+stepLen])
+#ax2.plot(dat.MetsMeanP[landings[landingToPlot]:landings[landingToPlot]+stepLen])
+#ax2.plot(dat.MFMeanP[landings[landingToPlot]:landings[landingToPlot]+stepLen])
+#plt.legend()
+#
+#fig.tight_layout()  # otherwise the right y-label is slightly clipped
+#plt.show()
