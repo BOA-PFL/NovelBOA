@@ -12,7 +12,7 @@ import os
 
 # Read in files
 # only read .asc files for this work
-fPath = 'C:/Users/Daniel.Feeney/Dropbox (Boa)/EnduranceProtocolWork/PressureASCII/'
+fPath = 'C:/Users/Daniel.Feeney/Dropbox (Boa)/EnduranceProtocolWork/EnduranceProtocolHike/PressureASCII/'
 fileExt = r".mva"
 entries = [fName for fName in os.listdir(fPath) if fName.endswith(fileExt)]
 
@@ -51,11 +51,20 @@ maxPlantMetP = []
 maxToeP = []
 maxHeelP = []
 
+HeelPMidStance = []
+HeelRateDecay = []
 trial = []
+Subject = []
+Condition = []
+Config = []
 for file in entries:
     try:
         
         fName = file #Load one file at a time
+        
+        subName = fName.split(sep = "_")[0]
+        ConditionTmp = fName.split(sep="_")[1]
+        ConfigTmp = fName.split(sep="_")[2]
         
         dat = pd.read_csv(fPath+fName,sep='\t', skiprows = 14, header = 0)
         
@@ -74,7 +83,9 @@ for file in entries:
         for landing in landings:
             try:
                # Appending dorsal pressure data
-
+              
+                HeelPMidStance.append(dat.HeelMaxP[landing+25])
+                HeelRateDecay.append(dat.HeelMaxP[landing+10] - dat.HeelMaxP[landing+18])
                 sdFF.append(np.std(dat.FFMeanP[landing:landing+stepLen])) 
                 meanFF.append(np.mean(dat.FFMeanP[landing:landing+stepLen]))
                 sdMets.append(np.std(dat.MetsMeanP[landing:landing+stepLen]))
@@ -89,6 +100,10 @@ for file in entries:
                 maxPlantMetP.append(np.max(dat.PlantMetsMaxP[landing:landing+stepLen]))
                 maxToeP.append(np.max(dat.ToesMaxP[landing:landing+stepLen]))
                 maxHeelP.append(np.max(dat.HeelMaxP[landing:landing+stepLen]))  
+                Subject.append(subName)
+                Condition.append(ConditionTmp)
+                Config.append(ConfigTmp)
+
 
             except:
                 print(landing)
@@ -96,9 +111,12 @@ for file in entries:
         print(file)    
         
        
-outcomes = pd.DataFrame({'Trial':list(trial), 'sdMets': list(sdMets),'meanMets':list(meanMets), 'sdFF':list(sdFF), 'meanFF':list(meanFF),'sdMF':list(sdMF),
-                         'meanMF':list(meanMF),'maxFF':list(maxFF), 'maxMF':list(maxMF), 'maxMets':list(maxMets), 'maxPlantMetP':list(maxPlantMetP),
-                         'maxToeP':list(maxToeP),'maxHeelP':list(maxHeelP)})
+outcomes = pd.DataFrame({'Subject':list(Subject),'Condition':list(Condition), 'Config':list(Config),'sdMets': list(sdMets),
+                         'meanMets':list(meanMets), 'sdFF':list(sdFF), 'meanFF':list(meanFF),'sdMF':list(sdMF),
+                         'meanMF':list(meanMF),'maxFF':list(maxFF), 'maxMF':list(maxMF), 'maxMets':list(maxMets), 
+                         'maxPlantMetP':list(maxPlantMetP),
+                         'maxToeP':list(maxToeP),'maxHeelP':list(maxHeelP), 'MidStanceHeelP':list(HeelPMidStance),
+                         'HeelDecay':list(HeelRateDecay)})
 
     
 ## plotting
@@ -137,6 +155,26 @@ outcomes = pd.DataFrame({'Trial':list(trial), 'sdMets': list(sdMets),'meanMets':
 #ax2.plot(dat.FFMeanP[landings[landingToPlot]:landings[landingToPlot]+stepLen])
 #ax2.plot(dat.MetsMeanP[landings[landingToPlot]:landings[landingToPlot]+stepLen])
 #ax2.plot(dat.MFMeanP[landings[landingToPlot]:landings[landingToPlot]+stepLen])
+#plt.legend()
+#
+#fig.tight_layout()  # otherwise the right y-label is slightly clipped
+#plt.show()
+    
+# mean pressure
+#fig, ax1 = plt.subplots()
+#
+#color = 'tab:red'
+#ax1.set_xlabel('time')
+#ax1.set_ylabel('TotalForce(N)', color=color)
+#ax1.plot(dat.Force[landings[landingToPlot]:landings[landingToPlot]+stepLen], color=color)
+#ax1.tick_params(axis='y', labelcolor=color)
+#
+#ax2 = ax1.twinx()  # instantiate a second axes that shares the same x-axis
+#
+#ax2.set_ylabel('Max Pressures')  # we already handled the x-label with ax1
+##ax2.plot(dat.FFMeanP[landings[landingToPlot]:landings[landingToPlot]+stepLen])
+#ax2.plot(dat.PlantMetsMeanP[landings[landingToPlot]:landings[landingToPlot]+stepLen])
+#ax2.plot(dat.HeelMaxP[landings[landingToPlot]:landings[landingToPlot]+stepLen])
 #plt.legend()
 #
 #fig.tight_layout()  # otherwise the right y-label is slightly clipped
