@@ -112,7 +112,7 @@ ax[1].set_title('Left Heel Force')
 ax[2].set_title('Left Lateral Force')
 ax[3].set_title('Left Medial Force')
 
-#%%
+
 #### Do the same thing for the right side #### 
 ##### Filter force below threshold to 0 #####
 RForce = dat.Right
