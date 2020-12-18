@@ -9,6 +9,7 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import os
+import ctypes  
 
 # Read in files
 # only read .asc files for this work
@@ -34,31 +35,58 @@ dat = dat.iloc[int(np.floor(pts[0,0])) : int(np.floor(pts[1,0])),:]
 ## as the CV or SD of force during the turn, calcualte turn time, calculate symmetry
 
 # Find indices of toe and heel turns but leave original data untouched 
-fThresh = 150 #below this value will be set to 0.
+heelThresh = 150 #below this value will be set to 0 temporarily to find indices to start/end turns
 stepLen = 45 #Set value to look forward 
 tmpToes = np.array(dat.Toes)
 tmpHeel = np.array(dat.LeftHeel)
 
-tmpHeel[tmpHeel < fThresh] = 0
+tmpHeel[tmpHeel < heelThresh] = 0
 
-def findTurnStart(force):
+def findTurnStart(force, thresh):
+    ## enter np array and a threshold value to detect 0s ##
     lic = []
     for step in range(len(force)-1):
-        if force[step] <= fThresh and np.mean(force[step:step+10]) >= fThresh:
+        if force[step] <= thresh and np.mean(force[step:step+10]) >= thresh:
             lic.append(step)
     return lic
 
-heelStart = findTurnStart(tmpHeel) #gets too many entries, trim below
-realHeelStart = []
-# crass way to crim the indices too close together
-for numel, entry in enumerate(heelStart):
-    if heelStart[numel + 1] - entry > 50:
-        realHeelStart.append(entry)
+def trimEntries(zeroEntries, lenForward):
+    realTurnStart = []
+    # crass way to crim the indices too close together
+    for numel, entry in enumerate(zeroEntries):
+        if numel < (len(zeroEntries) - 1):
+            if zeroEntries[numel + 1] - entry > lenForward:
+                realTurnStart.append(entry)
+    return realTurnStart
 
-#Find takeoff from FP when force goes from above thresh to 0
-def findTakeoffs(force):
-    lto = []
-    for step in range(len(force)-1):
-        if force[step] >= fThresh and force[step + 1] == 0:
-            lto.append(step + 1)
-    return lto
+#### Use functions above to find the starts of turns for heel and toes
+heelStart = findTurnStart(tmpHeel, 150) #gets too many entries, trim below
+realHeelStart = trimEntries(heelStart, 150)
+
+# Same will be done with toes, set below thresh to 0, find indices
+toeThresh = 50
+tmpToes[tmpToes < toeThresh] = 0
+
+toeStart = findTurnStart(tmpToes, 100)
+realToeStart = trimEntries(toeStart, 100)
+plt.plot(tmpToes)
+for xc in realToeStart:
+    plt.axvline(x = xc)
+
+correctStarts = ctypes.windll.user32.MessageBoxW(0, "Are the starts correct?", "Heel Start", 3)
+if correctStarts == 7:
+    print('Select new points')
+    realToeStart = []
+    plt.plot(tmpToes)
+    toestart2 = np.asarray(plt.ginput(5, timeout=-1))
+
+
+    
+plt.plot(tmpHeel)
+for xc in realHeelStart:
+    plt.axvline(x = xc, color = 'r')
+    
+   
+
+    
+
