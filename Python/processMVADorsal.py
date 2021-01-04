@@ -57,6 +57,10 @@ trial = []
 Subject = []
 Condition = []
 Config = []
+
+#first columns (FF, Mets, and MF) all relate to dorsal values. Once you get to PlantMetsForce it is plantar metatarsal force 
+#and everything to the right of that column is plantar side. Each location (e.g. FF, MF, etc.) has force, max Pressure, Mean Pressure, and pct
+
 for file in entries:
     try:
         
@@ -109,8 +113,11 @@ for file in entries:
                 print(landing)
     except:
         print(file)    
+    
+#the outcomes dataframe uses the same logic (first set are dorsal pressures until maxPlantMetP, 
+#then everything is plantar unless noted otherwise), then midstanceHeelP is the heel pressure at 
+#mid stance and the heel decay from peak (which is a bit finnicky at the moment). 
         
-       
 outcomes = pd.DataFrame({'Subject':list(Subject),'Condition':list(Condition), 'Config':list(Config),'sdMets': list(sdMets),
                          'meanMets':list(meanMets), 'sdFF':list(sdFF), 'meanFF':list(meanFF),'sdMF':list(sdMF),
                          'meanMF':list(meanMF),'maxFF':list(maxFF), 'maxMF':list(maxMF), 'maxMets':list(maxMets), 

@@ -27,10 +27,10 @@ dat = pd.read_csv(fPath+fName,sep='         ', skiprows = 3, header = 0)
 dat.columns = ['Time', 'LeftHeel', 'LeftMedial','LeftLateral','Total']
 dat['Toes'] = dat.LeftMedial + dat.LeftLateral
 
-
-plt.plot(dat.Total[4000:7500])
-plt.plot(dat.LeftHeel[4000:7500])
-plt.plot(dat.Toes[4000:7500])
+fig1, ax1 = plt.subplots()
+ax1.plot(dat.Total[4000:7500])
+ax1.plot(dat.LeftHeel[4000:7500])
+ax1.plot(dat.Toes[4000:7500])
 plt.legend()
 print('Select 2 points: start and end of analysis trial')
 pts = np.asarray(plt.ginput(2, timeout=-1))
@@ -54,12 +54,12 @@ tmpToes[tmpToes < toeThresh] = 0
 # Select toe turn starts
 plt.plot(tmpToes)
 toestart = np.asarray(plt.ginput(5, timeout=-1))
+realToeStart = [int(toestart[0,0]), int(toestart[1,0]), (toestart[2,0]), int(toestart[3,0]),int(toestart[4,0])]
 
 # Select heel turn starts
 plt.plot(tmpHeel)
 heelstart = np.asarray(plt.ginput(5, timeout=-1))
-    
+realHeelStart = [int(heelstart[0,0]), int(heelstart[1,0]), (heelstart[2,0]), int(heelstart[3,0]),int(heelstart[4,0])]
    
-
     
 
