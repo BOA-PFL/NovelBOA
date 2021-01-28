@@ -13,17 +13,19 @@ import ctypes
 
 # Read in files
 # only read .asc files for this work
-fPath = 'C:/Users/Daniel.Feeney/Dropbox (Boa)/Snow Protocol/SnowboardLoadSol/'
+fPath = 'C:/Users/Daniel.Feeney/Dropbox (Boa)/Snow Protocol/SnowboardProtocol/'
 entries = os.listdir(fPath)
-fName = entries[1]
-dat = pd.read_csv(fPath+fName,sep='         ', skiprows = 3, header = 0)
-dat.columns = ['Time', 'LeftHeel', 'LeftMedial','LeftLateral','Total']
-dat['Toes'] = dat.LeftMedial + dat.LeftLateral
+fName = entries[4]
+dat = pd.read_csv(fPath+fName,sep='         ', skiprows = 3, header = 0, index_col = False)
+#dat.columns = ['Time', 'LeftHeel', 'LeftMedial','LeftLateral','Total']
+dat.columns = ['Time', 'LHeel', 'LMedial','LLateral','LTotal', 'Time2', 'RLateral','RMedial','RHeel','RTotal']
+dat['LToes'] = dat.LMedial + dat.LLateral
+dat['RToes'] = dat.RMedial + dat.RLateral
 
 
-plt.plot(dat.Total[4000:7500])
-plt.plot(dat.LeftHeel[4000:7500])
-plt.plot(dat.Toes[4000:7500])
+plt.plot(dat.LTotal)
+plt.plot(dat.LHeel)
+plt.plot(dat.LToes)
 plt.legend()
 print('Select start and end of analysis trial')
 pts = np.asarray(plt.ginput(2, timeout=-1))
@@ -37,8 +39,8 @@ dat = dat.iloc[int(np.floor(pts[0,0])) : int(np.floor(pts[1,0])),:]
 # Find indices of toe and heel turns but leave original data untouched 
 heelThresh = 150 #below this value will be set to 0 temporarily to find indices to start/end turns
 stepLen = 45 #Set value to look forward 
-tmpToes = np.array(dat.Toes)
-tmpHeel = np.array(dat.LeftHeel)
+tmpToes = np.array(dat.LToes)
+tmpHeel = np.array(dat.LHeel)
 
 tmpHeel[tmpHeel < heelThresh] = 0
 
@@ -64,7 +66,7 @@ heelStart = findTurnStart(tmpHeel, 150) #gets too many entries, trim below
 realHeelStart = trimEntries(heelStart, 150)
 
 # Same will be done with toes, set below thresh to 0, find indices
-toeThresh = 50
+toeThresh = 150
 tmpToes[tmpToes < toeThresh] = 0
 
 toeStart = findTurnStart(tmpToes, 100)

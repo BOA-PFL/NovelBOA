@@ -69,6 +69,7 @@ for file in entries:
         subName = fName.split(sep = "_")[0]
         ConditionTmp = fName.split(sep="_")[1]
         ConfigTmp = fName.split(sep="_")[2]
+        ConfigTmp = ConfigTmp.split(sep=".")[0]
         
         dat = pd.read_csv(fPath+fName,sep='\t', skiprows = 14, header = 0)
         
