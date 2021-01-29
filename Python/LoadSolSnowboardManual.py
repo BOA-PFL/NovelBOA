@@ -52,19 +52,48 @@ tmpHeel[tmpHeel < heelThresh] = 0
 tmpToes[tmpToes < toeThresh] = 0
 
 # Select toe turn starts
-plt.plot(tmpToes)
+plt.plot(tmpToes, label='Toes')
+plt.plot(tmpHeel, label='Heel')
+plt.legend()
+print('Select start of Toe Turns')
 toestart = np.asarray(plt.ginput(5, timeout=-1))
-realToeStart = [int(toestart[0,0]), int(toestart[1,0]), (toestart[2,0]), int(toestart[3,0]),int(toestart[4,0])]
+realToeStart = [int(toestart[0,0]), int(toestart[1,0]), (int(toestart[2,0])), int(toestart[3,0]),int(toestart[4,0])]
 plt.close()
 
 # Select heel turn starts
-plt.plot(tmpHeel)
+plt.plot(tmpToes, label='Toes')
+plt.plot(tmpHeel, label='Heel')
+plt.legend()
+print('Select start of heel turns')
 heelstart = np.asarray(plt.ginput(5, timeout=-1))
-realHeelStart = [int(heelstart[0,0]), int(heelstart[1,0]), (heelstart[2,0]), int(heelstart[3,0]),int(heelstart[4,0])]
+realHeelStart = [int(heelstart[0,0]), int(heelstart[1,0]), (int(heelstart[2,0])), int(heelstart[3,0]),int(heelstart[4,0])]
 plt.close()   
 
 ###### After finding starts of turns, find avg, SD, CV, etc. for each turn ####
+dat = dat.reset_index()
+turnToPlot = 2
+fwdLook = 200
 
-plt.plot(dat.LToes[realToeStart[0]:realToeStart[1]], label='L Toes')
-plt.plot(dat.RToes[realToeStart[0]:realToeStart[1]], label = 'R Toes')
-plt.legend()
+fig, ax = plt.subplots(2)
+fig.suptitle('Toe Turn')
+ax[0].plot(dat.LToes[realToeStart[turnToPlot]:realToeStart[turnToPlot]+fwdLook], label='L Toes')
+ax[0].plot(dat.RToes[realToeStart[turnToPlot]:realToeStart[turnToPlot]+fwdLook], label = 'R Toes')
+ax[0].set_title('Toes')
+ax[0].set_ylim([0,800])
+fig.legend()
+ax[1].plot(dat.LHeel[realToeStart[turnToPlot]:realToeStart[turnToPlot]+fwdLook], 'tab:green', label = 'L Heel')
+ax[1].plot(dat.RHeel[realToeStart[turnToPlot]:realToeStart[turnToPlot]+fwdLook], 'tab:red', label = 'R Heel')
+ax[1].set_title('Heel')
+ax[1].set_ylim([0,800])
+fig.legend()
+
+fig, ax = plt.subplots(2)
+fig.suptitle('Heel Turn')
+ax[0].plot(dat.LHeel[realHeelStart[turnToPlot]:realHeelStart[turnToPlot]+fwdLook], label='L Heel')
+ax[0].plot(dat.RHeel[realHeelStart[turnToPlot]:realHeelStart[turnToPlot]+fwdLook], label = 'R Heel')
+ax[0].set_ylim([0,800])
+fig.legend()
+ax[1].plot(dat.LToes[realHeelStart[turnToPlot]:realHeelStart[turnToPlot]+fwdLook], 'tab:green', label = 'L Toes')
+ax[1].plot(dat.RToes[realHeelStart[turnToPlot]:realHeelStart[turnToPlot]+fwdLook], 'tab:red', label = 'R Toes')
+ax[1].set_ylim([0,800])
+fig.legend()
