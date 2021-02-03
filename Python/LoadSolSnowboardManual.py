@@ -15,7 +15,7 @@ import ctypes
 # only read .asc files for this work
 fPath = 'C:/Users/Daniel.Feeney/Dropbox (Boa)/Snow Protocol/SnowboardProtocol/'
 entries = os.listdir(fPath)
-fName = entries[1]
+fName = entries[0]
 dat = pd.read_csv(fPath+fName,sep='         ', skiprows = 3, header = 0, index_col = False)
 #dat.columns = ['Time', 'LeftHeel', 'LeftMedial','LeftLateral','Total']
 dat.columns = ['Time', 'LHeel', 'LMedial','LLateral','LTotal', 'Time2', 'RLateral','RMedial','RHeel','RTotal']
@@ -71,7 +71,7 @@ plt.close()
 
 ###### After finding starts of turns, find avg, SD, CV, etc. for each turn ####
 dat = dat.reset_index()
-turnToPlot = 2
+turnToPlot = 3
 fwdLook = 200
 
 fig, ax = plt.subplots(2)
@@ -89,11 +89,11 @@ fig.legend()
 
 fig, ax = plt.subplots(2)
 fig.suptitle('Heel Turn')
-ax[0].plot(dat.LHeel[realHeelStart[turnToPlot]:realHeelStart[turnToPlot]+fwdLook], label='L Heel')
-ax[0].plot(dat.RHeel[realHeelStart[turnToPlot]:realHeelStart[turnToPlot]+fwdLook], label = 'R Heel')
+ax[0].plot(dat.LToes[realHeelStart[turnToPlot]:realHeelStart[turnToPlot]+fwdLook], label='L Toes')
+ax[0].plot(dat.RToes[realHeelStart[turnToPlot]:realHeelStart[turnToPlot]+fwdLook], label = 'R Toes')
 ax[0].set_ylim([0,800])
 fig.legend()
-ax[1].plot(dat.LToes[realHeelStart[turnToPlot]:realHeelStart[turnToPlot]+fwdLook], 'tab:green', label = 'L Toes')
-ax[1].plot(dat.RToes[realHeelStart[turnToPlot]:realHeelStart[turnToPlot]+fwdLook], 'tab:red', label = 'R Toes')
+ax[1].plot(dat.LHeel[realHeelStart[turnToPlot]:realHeelStart[turnToPlot]+fwdLook], 'tab:green', label = 'L Heel')
+ax[1].plot(dat.RHeel[realHeelStart[turnToPlot]:realHeelStart[turnToPlot]+fwdLook], 'tab:red', label = 'R Heel')
 ax[1].set_ylim([0,800])
 fig.legend()
