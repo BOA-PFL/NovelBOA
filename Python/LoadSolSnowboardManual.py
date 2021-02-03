@@ -101,9 +101,12 @@ fig.legend()
 
 ###### Extract variables from each turn initiation ######
 maxF = [np.max(dat.LToes[toeTurnStart:toeTurnStart+100]) for toeTurnStart in realToeStart]
-maxRFDup = [np.max(at.LToes[toeTurnStart:toeTurnStart+100].diff()) for toeTurnStart in realToeStart]
+maxRFDup = [np.max(dat.LToes[toeTurnStart:toeTurnStart+100].diff()) for toeTurnStart in realToeStart]
 maxRFDdn = [np.min(dat.LToes[toeTurnStart:toeTurnStart+100].diff()) for toeTurnStart in realToeStart]
+timeToPeak = [ list(dat.LToes[toeTurnStart:toeTurnStart+100]).index(max(dat.LToes[toeTurnStart:toeTurnStart+100])) for toeTurnStart in realToeStart ]
 
-plt.plot(dat.LToes[realToeStart[0]:realToeStart[0]+100].diff())
+list(dat.LToes[realToeStart[1]:realToeStart[1]+100]).index(max(dat.LToes[realToeStart[1]:realToeStart[1]+100]))
+
+plt.plot(dat.LToes[realToeStart[1]:realToeStart[1]+100])
 
 avgF2 = [movAvgForce(forceZ, landing, landing+100, 10) for toeTurnStart in realToeStart]
