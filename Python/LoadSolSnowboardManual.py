@@ -97,3 +97,13 @@ ax[1].plot(dat.LHeel[realHeelStart[turnToPlot]:realHeelStart[turnToPlot]+fwdLook
 ax[1].plot(dat.RHeel[realHeelStart[turnToPlot]:realHeelStart[turnToPlot]+fwdLook], 'tab:red', label = 'R Heel')
 ax[1].set_ylim([0,800])
 fig.legend()
+
+
+###### Extract variables from each turn initiation ######
+maxF = [np.max(dat.LToes[toeTurnStart:toeTurnStart+100]) for toeTurnStart in realToeStart]
+maxRFDup = [np.max(at.LToes[toeTurnStart:toeTurnStart+100].diff()) for toeTurnStart in realToeStart]
+maxRFDdn = [np.min(dat.LToes[toeTurnStart:toeTurnStart+100].diff()) for toeTurnStart in realToeStart]
+
+plt.plot(dat.LToes[realToeStart[0]:realToeStart[0]+100].diff())
+
+avgF2 = [movAvgForce(forceZ, landing, landing+100, 10) for toeTurnStart in realToeStart]
