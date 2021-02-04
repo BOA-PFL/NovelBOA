@@ -32,7 +32,7 @@ for file in entries:
         ax.plot(dat.RTotal, label = 'Right Total Force')
         fig.legend()
         print('Select start and end of analysis trial')
-        pts = np.asarray(plt.ginput(2, timeout=15))
+        pts = np.asarray(plt.ginput(2, timeout=-1))
         plt.close()
         # downselect the region of the dataframe you'd like
         dat = dat.iloc[int(np.floor(pts[0,0])) : int(np.floor(pts[1,0])),:]
@@ -140,10 +140,12 @@ for file in entries:
         longSubject = list( np.repeat(subName, totalLength) )
         longConfig = list( np.repeat(configName, totalLength) )
         
-        outcomes = pd.DataFrame({'Subject':list(longSubject), 'Config': list(longConfig), 'Side':list(noLeft + noRight),
-                                 'TurnType': list(noToes + noHeel),'MaxForceToes':list(maxFL + maxFR),
-                                 'MaxRFDUp': list(maxRFDupL + maxRFDupR),'MaxRFDdn': list(maxRFDdnL + maxRFDdnR), 
-                                 'timeToPeak':list(timeToPeakL + timeToPeakR),'stdPeak': list(stdPeakL + stdPeakR)})
+        outcomes = pd.DataFrame({'Subject':list(longSubject), 'Config': list(longConfig), 'Side':list(noLeft + noRight + noLeftHeel + noRightHeel),
+                                 'TurnType': list(noToes + noHeel),'MaxForceToes':list(maxFL + maxFR + maxFLHeel + maxFRHeel),
+                                 'MaxRFDUp': list(maxRFDupL + maxRFDupR + maxRFDupLHeel + maxRFDupRHeel),
+                                 'MaxRFDdn': list(maxRFDdnL + maxRFDdnR + maxRFDdnLHeel + maxRFDdnRHeel), 
+                                 'timeToPeak':list(timeToPeakL + timeToPeakR + timeToPeakLHeel + timeToPeakRHeel),
+                                 'stdPeak': list(stdPeakL + stdPeakR + stdPeakLHeel + stdPeakRHeel)})
         
         outcomes.to_csv('C:/Users/Daniel.Feeney/Dropbox (Boa)/Snow Protocol/SnowboardProtocol/Results/snowboardResults.csv', mode='a', header=False)
 #plt.plot(dat.LToes[realToeStart[1]:realToeStart[1]+100])
