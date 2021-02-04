@@ -9,7 +9,6 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import os
-import ctypes  
 
 # Read in files
 # only read .asc files for this work
@@ -19,6 +18,8 @@ fName = entries[0]
 dat = pd.read_csv(fPath+fName,sep='         ', skiprows = 3, header = 0, index_col = False)
 #dat.columns = ['Time', 'LeftHeel', 'LeftMedial','LeftLateral','Total']
 dat.columns = ['Time', 'LHeel', 'LMedial','LLateral','LTotal', 'Time2', 'RLateral','RMedial','RHeel','RTotal']
+subName = fName.split(sep = "_")[0]
+configName = fName.split(sep = "_")[1]
 
 dat['LToes'] = dat.LMedial + dat.LLateral
 dat['RToes'] = dat.RMedial + dat.RLateral
@@ -86,6 +87,7 @@ ax[1].plot(dat.RHeel[realToeStart[turnToPlot]:realToeStart[turnToPlot]+fwdLook],
 ax[1].set_title('Heel')
 ax[1].set_ylim([0,800])
 fig.legend()
+fig.tight_layout()
 
 fig, ax = plt.subplots(2)
 fig.suptitle('Heel Turn')
@@ -97,16 +99,35 @@ ax[1].plot(dat.LHeel[realHeelStart[turnToPlot]:realHeelStart[turnToPlot]+fwdLook
 ax[1].plot(dat.RHeel[realHeelStart[turnToPlot]:realHeelStart[turnToPlot]+fwdLook], 'tab:red', label = 'R Heel')
 ax[1].set_ylim([0,800])
 fig.legend()
+fig.tight_layout()
 
 
 ###### Extract variables from each turn initiation ######
-maxF = [np.max(dat.LToes[toeTurnStart:toeTurnStart+100]) for toeTurnStart in realToeStart]
-maxRFDup = [np.max(dat.LToes[toeTurnStart:toeTurnStart+100].diff()) for toeTurnStart in realToeStart]
-maxRFDdn = [np.min(dat.LToes[toeTurnStart:toeTurnStart+100].diff()) for toeTurnStart in realToeStart]
-timeToPeak = [ list(dat.LToes[toeTurnStart:toeTurnStart+100]).index(max(dat.LToes[toeTurnStart:toeTurnStart+100])) for toeTurnStart in realToeStart ]
+# left toes #
+maxFL = [ np.max(dat.LToes[toeTurnStart:toeTurnStart+100]) for toeTurnStart in realToeStart ]
+maxRFDupL = [ np.max(dat.LToes[toeTurnStart:toeTurnStart+100].diff()) for toeTurnStart in realToeStart ]
+maxRFDdnL = [ np.min(dat.LToes[toeTurnStart:toeTurnStart+100].diff()) for toeTurnStart in realToeStart ]
+timeToPeakL = [ list(dat.LToes[toeTurnStart:toeTurnStart+100]).index(max(dat.LToes[toeTurnStart:toeTurnStart+100])) for toeTurnStart in realToeStart ]
+stdPeakL = [ np.std(dat.LToes[times-10:times+10]) for times in timeToPeakL ]
+noLeft = list(np.repeat('L', len(stdPeakL)))
 
-list(dat.LToes[realToeStart[1]:realToeStart[1]+100]).index(max(dat.LToes[realToeStart[1]:realToeStart[1]+100]))
+# Right Toes #
+maxFR = [ np.max(dat.RToes[toeTurnStart:toeTurnStart+100]) for toeTurnStart in realToeStart ]
+maxRFDupR = [ np.max(dat.RToes[toeTurnStart:toeTurnStart+100].diff()) for toeTurnStart in realToeStart ]
+maxRFDdnR = [ np.min(dat.RToes[toeTurnStart:toeTurnStart+100].diff()) for toeTurnStart in realToeStart ]
+timeToPeakR = [ list(dat.RToes[toeTurnStart:toeTurnStart+100]).index(max(dat.RToes[toeTurnStart:toeTurnStart+100])) for toeTurnStart in realToeStart ]
+stdPeakR = [ np.std(dat.RToes[times-10:times+10]) for times in timeToPeakL ]
+noRight = list(np.repeat('R', len(stdPeakR)))
 
-plt.plot(dat.LToes[realToeStart[1]:realToeStart[1]+100])
+# naming #
+totalLength = len(noLeft) + len(noRight)
+longSubject = list( np.repeat(subName, totalLength) )
+longConfig = list( np.repeat(configName, totalLength) )
 
-avgF2 = [movAvgForce(forceZ, landing, landing+100, 10) for toeTurnStart in realToeStart]
+outcomes = pd.DataFrame({'Subject':list(longSubject), 'Config': list(longConfig), 'Side':list(noLeft + noRight) ,'MaxForceToes':list(maxFL + maxFR),
+                         'MaxRFDUp': list(maxRFDupL + maxRFDupR),'MaxRFDdn': list(maxRFDdnL + maxRFDdnR), 
+                         'timeToPeak':list(timeToPeakL + timeToPeakR),'stdPeak': list(stdPeakL + stdPeakR)})
+
+#plt.plot(dat.LToes[realToeStart[1]:realToeStart[1]+100])
+
+#avgF2 = [movAvgForce(forceZ, landing, landing+100, 10) for toeTurnStart in realToeStart]
