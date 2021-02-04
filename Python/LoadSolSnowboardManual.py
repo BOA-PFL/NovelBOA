@@ -128,6 +128,7 @@ outcomes = pd.DataFrame({'Subject':list(longSubject), 'Config': list(longConfig)
                          'MaxRFDUp': list(maxRFDupL + maxRFDupR),'MaxRFDdn': list(maxRFDdnL + maxRFDdnR), 
                          'timeToPeak':list(timeToPeakL + timeToPeakR),'stdPeak': list(stdPeakL + stdPeakR)})
 
+outcomes.to_csv('C:/Users/Daniel.Feeney/Dropbox (Boa)/Snow Protocol/SnowboardProtocol/Results/snowboardResults.csv', mode='a', header=False)
 #plt.plot(dat.LToes[realToeStart[1]:realToeStart[1]+100])
 
 #avgF2 = [movAvgForce(forceZ, landing, landing+100, 10) for toeTurnStart in realToeStart]
