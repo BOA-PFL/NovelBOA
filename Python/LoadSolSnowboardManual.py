@@ -68,38 +68,6 @@ for file in entries:
         realHeelStart = [int(heelstart[0,0]), int(heelstart[1,0]), (int(heelstart[2,0])), int(heelstart[3,0]),int(heelstart[4,0])]
         plt.close()   
         
-        ###### After finding starts of turns, find avg, SD, CV, etc. for each turn ####
-        dat = dat.reset_index()
-        turnToPlot = 3
-        fwdLook = 200
-        
-        # fig, ax = plt.subplots(2)
-        # fig.suptitle('Toe Turn')
-        # ax[0].plot(dat.LToes[realToeStart[turnToPlot]:realToeStart[turnToPlot]+fwdLook], label='L Toes')
-        # ax[0].plot(dat.RToes[realToeStart[turnToPlot]:realToeStart[turnToPlot]+fwdLook], label = 'R Toes')
-        # ax[0].set_title('Toes')
-        # ax[0].set_ylim([0,800])
-        # fig.legend()
-        # ax[1].plot(dat.LHeel[realToeStart[turnToPlot]:realToeStart[turnToPlot]+fwdLook], 'tab:green', label = 'L Heel')
-        # ax[1].plot(dat.RHeel[realToeStart[turnToPlot]:realToeStart[turnToPlot]+fwdLook], 'tab:red', label = 'R Heel')
-        # ax[1].set_title('Heel')
-        # ax[1].set_ylim([0,800])
-        # fig.legend()
-        # fig.tight_layout()
-        
-        # fig, ax = plt.subplots(2)
-        # fig.suptitle('Heel Turn')
-        # ax[0].plot(dat.LToes[realHeelStart[turnToPlot]:realHeelStart[turnToPlot]+fwdLook], label='L Toes')
-        # ax[0].plot(dat.RToes[realHeelStart[turnToPlot]:realHeelStart[turnToPlot]+fwdLook], label = 'R Toes')
-        # ax[0].set_ylim([0,800])
-        # fig.legend()
-        # ax[1].plot(dat.LHeel[realHeelStart[turnToPlot]:realHeelStart[turnToPlot]+fwdLook], 'tab:green', label = 'L Heel')
-        # ax[1].plot(dat.RHeel[realHeelStart[turnToPlot]:realHeelStart[turnToPlot]+fwdLook], 'tab:red', label = 'R Heel')
-        # ax[1].set_ylim([0,800])
-        # fig.legend()
-        # fig.tight_layout()
-        
-        
         ###### Extract variables from each turn initiation ######
         # left toes #
         maxFL = [ np.max(dat.LToes[toeTurnStart:toeTurnStart+100]) for toeTurnStart in realToeStart ]
@@ -154,3 +122,85 @@ for file in entries:
 
     except:
         print(file)
+     
+    
+###### After finding starts of turns, find avg, SD, CV, etc. for each turn ####
+dat = dat.reset_index()
+turnToPlot = 0
+fwdLook = 100
+
+
+# fig, ax = plt.subplots(2)
+# fig.suptitle('Toe Turn')
+# ax[0].plot(dat.LToes[realToeStart[turnToPlot]:realToeStart[turnToPlot]+fwdLook], label='L Toes')
+# ax[0].plot(dat.RToes[realToeStart[turnToPlot]:realToeStart[turnToPlot]+fwdLook], label = 'R Toes')
+# ax[0].set_title('Toes')
+# ax[0].set_ylim([0,800])
+# fig.legend()
+# ax[1].plot(dat.LHeel[realToeStart[turnToPlot]:realToeStart[turnToPlot]+fwdLook], 'tab:green', label = 'L Heel')
+# ax[1].plot(dat.RHeel[realToeStart[turnToPlot]:realToeStart[turnToPlot]+fwdLook], 'tab:red', label = 'R Heel')
+# ax[1].set_title('Heel')
+# ax[1].set_ylim([0,800])
+# fig.legend()
+# fig.tight_layout()
+
+# fig, ax = plt.subplots(2)
+# fig.suptitle('Heel Turn')
+# ax[0].plot(dat.LToes[realHeelStart[turnToPlot]:realHeelStart[turnToPlot]+fwdLook], label='L Toes')
+# ax[0].plot(dat.RToes[realHeelStart[turnToPlot]:realHeelStart[turnToPlot]+fwdLook], label = 'R Toes')
+# ax[0].set_ylim([0,800])
+# fig.legend()
+# ax[1].plot(dat.LHeel[realHeelStart[turnToPlot]:realHeelStart[turnToPlot]+fwdLook], 'tab:green', label = 'L Heel')
+# ax[1].plot(dat.RHeel[realHeelStart[turnToPlot]:realHeelStart[turnToPlot]+fwdLook], 'tab:red', label = 'R Heel')
+# ax[1].set_ylim([0,800])
+# fig.legend()
+# fig.tight_layout()
+
+# BOA vs. Lace plots
+turnToPlot = 2
+fwdLook = 100
+
+
+# plt.style.use('grayscale')
+# fig, ax = plt.subplots(2)
+# fig.suptitle('Toe Turn')
+# ax[0].plot(np.arange(0,fwdLook),dat.LToes[realToeStart[turnToPlot]:realToeStart[turnToPlot]+fwdLook], 'o-',label='Lace L Toes')
+# ax[0].plot(np.arange(0,fwdLook),BOAdat.LToes[BOAToeTurns[turnToPlot]:BOAToeTurns[turnToPlot]+fwdLook], '--',label = 'BOA L Toes')
+# ax[0].plot(np.arange(0,fwdLook),dat.LHeel[realToeStart[turnToPlot]:realToeStart[turnToPlot]+fwdLook], 's',label = 'Lace L Heel')
+# ax[0].plot(np.arange(0,fwdLook),BOAdat.LHeel[BOAToeTurns[turnToPlot]:BOAToeTurns[turnToPlot]+fwdLook], label = 'BOA L Heel')
+# ax[0].set_title('Left Toes')
+# ax[0].set_ylabel('Force (N)')
+# ax[0].set_ylim([0,1000])
+# fig.legend()
+# ax[1].plot(np.arange(0,fwdLook),dat.RToes[realToeStart[turnToPlot]:realToeStart[turnToPlot]+fwdLook], 'o-',label = 'Lace R Toes')
+# ax[1].plot(np.arange(0,fwdLook),BOAdat.RToes[BOAToeTurns[turnToPlot]:BOAToeTurns[turnToPlot]+fwdLook], '--', label = 'BOA R Toes')
+# ax[1].plot(np.arange(0,fwdLook),dat.RHeel[realToeStart[turnToPlot]:realToeStart[turnToPlot]+fwdLook],'s', label = 'Lace R Heel')
+# ax[1].plot(np.arange(0,fwdLook),BOAdat.RHeel[BOAToeTurns[turnToPlot]:BOAToeTurns[turnToPlot]+fwdLook], label = 'BOA R Heel')
+# ax[1].set_title('Right Toes')
+# ax[1].set_ylim([0,1000])
+# ax[1].set_ylabel('Force (N)')
+# ax[1].set_xlabel('Time (10ms)')
+# fig.legend()
+# fig.tight_layout()
+
+# # Heel Turn
+# fig, ax = plt.subplots(2)
+# fig.suptitle('Heel Turn')
+# ax[0].plot(np.arange(0,fwdLook),dat.LToes[realHeelStart[turnToPlot]:realHeelStart[turnToPlot]+fwdLook], 'o-', label='Lace L Toes')
+# ax[0].plot(np.arange(0,fwdLook),BOAdat.LToes[BOAHeelStart[turnToPlot]:BOAHeelStart[turnToPlot]+fwdLook], '--',label = 'BOA L Toes')
+# ax[0].plot(np.arange(0,fwdLook),dat.LHeel[realHeelStart[turnToPlot]:realHeelStart[turnToPlot]+fwdLook], 's', label = 'Lace L Heel')
+# ax[0].plot(np.arange(0,fwdLook),BOAdat.LHeel[BOAHeelStart[turnToPlot]:BOAHeelStart[turnToPlot]+fwdLook], label = 'BOA L Heel')
+# ax[0].set_title('Left Toes')
+# ax[0].set_ylabel('Force (N)')
+# ax[0].set_ylim([0,1000])
+# fig.legend()
+# ax[1].plot(np.arange(0,fwdLook),dat.RToes[realHeelStart[turnToPlot]:realHeelStart[turnToPlot]+fwdLook], 'o-',label = 'Lace R Toes')
+# ax[1].plot(np.arange(0,fwdLook),BOAdat.RToes[BOAHeelStart[turnToPlot]:BOAHeelStart[turnToPlot]+fwdLook],'--' ,label = 'BOA R Toes')
+# ax[1].plot(np.arange(0,fwdLook),dat.RHeel[realHeelStart[turnToPlot]:realHeelStart[turnToPlot]+fwdLook], 's' ,label = 'Lace R Heel')
+# ax[1].plot(np.arange(0,fwdLook),BOAdat.RHeel[BOAHeelStart[turnToPlot]:BOAHeelStart[turnToPlot]+fwdLook], label = 'BOA R Heel')
+# ax[1].set_title('Right Toes')
+# ax[1].set_ylim([0,1000])
+# ax[1].set_ylabel('Force (N)')
+# ax[1].set_xlabel('Time (10ms)')
+# fig.legend()
+# fig.tight_layout()
