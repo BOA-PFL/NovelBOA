@@ -156,9 +156,9 @@ fwdLook = 100
 # fig.legend()
 # fig.tight_layout()
 
-# BOA vs. Lace plots
-turnToPlot = 2
-fwdLook = 100
+## BOA vs. Lace plots
+# turnToPlot = 2
+# fwdLook = 100
 
 
 # plt.style.use('grayscale')
