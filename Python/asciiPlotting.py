@@ -16,6 +16,13 @@ fPath = 'C:/Users/Daniel.Feeney/Dropbox (Boa)/EnduranceProtocolWork/PressureASCI
 fileExt = r".asc"
 entries = [fName for fName in os.listdir(fPath) if fName.endswith(fileExt)]
 
+### in order to plot same time after landing, need to specify HS, Mid Stance
+### and toe off times here. For running, 5, 12, and 18 work. For walking
+### 5, 20, and 30 are a good start
+hs = 5
+ms = 20
+to = 30
+
 # Define constants and options
 fThresh = 135 #below this value will be set to 0.
 # list of functions 
@@ -52,7 +59,7 @@ fakeArray = list(np.arange(0,99))
 reshapeArray(fakeArray) #Testing to see if this works
 
 
-fName = entries[0] #Load one file at a time
+fName = entries[3] #Load one file at a time
         
 dat = pd.read_csv(fPath+fName,sep='\t', skiprows = 9, header = 0)
 
@@ -60,7 +67,7 @@ dat = pd.read_csv(fPath+fName,sep='\t', skiprows = 9, header = 0)
 dat['forceTot'] = dat.iloc[:,100:198].sum(axis=1)
 forceTot = dat['forceTot']
 forceTot[forceTot<fThresh] = 0
-#plt.plot(forceTot[0:150])
+plt.plot(forceTot[0:150])
 
 #find the landings and offs of the FP as vectors
 landings = findLandings(forceTot)
@@ -72,9 +79,9 @@ TOarray = []
 # loop through landings, extract row at 5, 12, and 18 after landing 
 bufferLen = len(dat)
 for landing in landings:
-    hsindex = landing + 5
-    mdindex = landing + 12
-    toindex = landing + 18
+    hsindex = landing + hs
+    mdindex = landing + ms
+    toindex = landing + to
     if landing < 15:
         print(landing)
     elif (landing + 20 > bufferLen): 
@@ -84,7 +91,7 @@ for landing in landings:
         MSarray.append(list(dat.iloc[mdindex,99:198]))
         TOarray.append(list(dat.iloc[toindex,99:198]))
 
-noRows = len(landings) - 2
+noRows = len(HSarray)
 noCols = 99    
     
 HSlist = list(np.mean(np.array(HSarray).reshape((noRows, noCols)), axis = 0))
