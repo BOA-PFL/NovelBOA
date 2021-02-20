@@ -60,17 +60,46 @@ dat = pd.read_csv(fPath+fName,sep='\t', skiprows = 9, header = 0)
 dat['forceTot'] = dat.iloc[:,100:198].sum(axis=1)
 forceTot = dat['forceTot']
 forceTot[forceTot<fThresh] = 0
-plt.plot(forceTot[0:150])
+#plt.plot(forceTot[0:150])
 
 #find the landings and offs of the FP as vectors
 landings = findLandings(forceTot)
 takeoffs = findTakeoffs(forceTot)
 
-tmpArray = list(dat.iloc[100,99:198])
-newDat = reshapeArray(tmpArray)
-plt.imshow(newDat, cmap='hot')
+HSarray = []
+MSarray = []
+TOarray = []
+# loop through landings, extract row at 5, 12, and 18 after landing 
+bufferLen = len(dat)
+for landing in landings:
+    hsindex = landing + 5
+    mdindex = landing + 12
+    toindex = landing + 18
+    if landing < 15:
+        print(landing)
+    elif (landing + 20 > bufferLen): 
+        print(landing)
+    else:
+        HSarray.append(list(dat.iloc[hsindex,99:198]))
+        MSarray.append(list(dat.iloc[mdindex,99:198]))
+        TOarray.append(list(dat.iloc[toindex,99:198]))
+
+noRows = len(landings) - 2
+noCols = 99    
+    
+HSlist = list(np.mean(np.array(HSarray).reshape((noRows, noCols)), axis = 0))
+MSlist = list(np.mean(np.array(MSarray).reshape((noRows, noCols)), axis = 0))
+TOlist = list(np.mean(np.array(TOarray).reshape((noRows, noCols)), axis = 0))
 
 
+hsAvg = reshapeArray(HSlist)
+plt.imshow(hsAvg, cmap='Blues')
+
+msAvg = reshapeArray(MSlist)
+plt.imshow(msAvg, cmap='Blues')
+
+toAvg = reshapeArray(TOlist)
+plt.imshow(toAvg, cmap='Blues')
 ### options for colors include winter, autumn, blue, and more ###
 ### need to find a good option for our purpose still 
 
