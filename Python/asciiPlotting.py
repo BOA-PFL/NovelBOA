@@ -72,10 +72,10 @@ plt.imshow(newDat, cmap='hot')
 
 
 startVal = 100
-for i in np.arange(1,20,1):
+for i in np.arange(1,6,1):
     tmpArray = list(dat.iloc[i+startVal,99:198])
     newDat = reshapeArray(tmpArray)
-    plt.imshow(newDat, cmap='hot')
+    plt.imshow(newDat, cmap='autumn')
     plt.show()
-    plt.pause(3)
+    plt.pause(1)
     plt.close()
