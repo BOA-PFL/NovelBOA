@@ -9,6 +9,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import os
 
+#%matplotlib qt
 # Read in files
 # only read .asc files for this work
 fPath = 'C:/Users/Daniel.Feeney/Dropbox (Boa)/EnduranceProtocolWork/PressureASCII/'
@@ -34,6 +35,22 @@ def findTakeoffs(force):
             lto.append(step + 1)
     return lto
 
+def reshapeArray(listIn):
+
+    listIn.insert(0,0)
+    listIn.insert(6,0)
+    listIn.insert(97,0)
+    listIn.insert(98,0)
+    listIn.insert(103,0)
+    listIn.insert(104,0)    
+    
+    outDat = np.fliplr(np.array(listIn).reshape(15,7))
+    outDat = np.flipud(outDat)
+    return outDat
+
+fakeArray = list(np.arange(0,99))
+reshapeArray(fakeArray) #Testing to see if this works
+
 
 fName = entries[0] #Load one file at a time
         
@@ -49,13 +66,16 @@ plt.plot(forceTot[0:150])
 landings = findLandings(forceTot)
 takeoffs = findTakeoffs(forceTot)
 
+tmpArray = list(dat.iloc[100,99:198])
+newDat = reshapeArray(tmpArray)
+plt.imshow(newDat, cmap='hot')
 
-tmpForce = np.array(dat.iloc[89,35:99]).reshape((8,8))
-plt.imshow(tmpForce, cmap='hot')
-plt.show()
 
-startVal = 80
+startVal = 100
 for i in np.arange(1,20,1):
-    tmpForce = np.array(dat.iloc[i+startVal,35:99]).reshape((8,8))
-    plt.imshow(tmpForce, cmap='hot')
+    tmpArray = list(dat.iloc[i+startVal,99:198])
+    newDat = reshapeArray(tmpArray)
+    plt.imshow(newDat, cmap='hot')
     plt.show()
+    plt.pause(3)
+    plt.close()
