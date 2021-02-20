@@ -71,11 +71,14 @@ newDat = reshapeArray(tmpArray)
 plt.imshow(newDat, cmap='hot')
 
 
+### options for colors include winter, autumn, blue, and more ###
+### need to find a good option for our purpose still 
+
 startVal = 100
 for i in np.arange(1,6,1):
     tmpArray = list(dat.iloc[i+startVal,99:198])
     newDat = reshapeArray(tmpArray)
-    plt.imshow(newDat, cmap='autumn')
+    plt.imshow(newDat, cmap='Blues')
     plt.show()
     plt.pause(1)
     plt.close()
