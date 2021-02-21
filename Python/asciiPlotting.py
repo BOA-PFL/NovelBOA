@@ -8,6 +8,7 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import os
+import seaborn as sns
 
 #%matplotlib qt
 # Read in files
@@ -98,23 +99,28 @@ HSlist = list(np.mean(np.array(HSarray).reshape((noRows, noCols)), axis = 0))
 MSlist = list(np.mean(np.array(MSarray).reshape((noRows, noCols)), axis = 0))
 TOlist = list(np.mean(np.array(TOarray).reshape((noRows, noCols)), axis = 0))
 
-
 hsAvg = reshapeArray(HSlist)
-plt.imshow(hsAvg, cmap='Blues')
-
 msAvg = reshapeArray(MSlist)
-plt.imshow(msAvg, cmap='Blues')
-
 toAvg = reshapeArray(TOlist)
-plt.imshow(toAvg, cmap='Blues')
+
+fig, (ax1, ax2, ax3) = plt.subplots(1, 3)
+fig.suptitle('Average Pressures across the gait cycle')
+g1 = sns.heatmap(hsAvg, cmap="viridis", ax = ax1)
+g1.set_title('Heel Strike')
+g2 = sns.heatmap(msAvg, cmap="viridis", ax = ax2)
+g2.set_title('Mid Stance')
+g3 = sns.heatmap(toAvg, cmap="viridis", ax = ax3)
+g3.set_title('Toe Off')
+fig.tight_layout()
+
 ### options for colors include winter, autumn, blue, and more ###
 ### need to find a good option for our purpose still 
 
-startVal = 100
-for i in np.arange(1,6,1):
-    tmpArray = list(dat.iloc[i+startVal,99:198])
-    newDat = reshapeArray(tmpArray)
-    plt.imshow(newDat, cmap='Blues')
-    plt.show()
-    plt.pause(1)
-    plt.close()
+#startVal = 100
+#for i in np.arange(1,6,1):
+#    tmpArray = list(dat.iloc[i+startVal,99:198])
+#    newDat = reshapeArray(tmpArray)
+#    plt.imshow(newDat, cmap='Blues')
+#    plt.show()
+#    plt.pause(1)
+#    plt.close()
