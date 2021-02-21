@@ -22,7 +22,7 @@ entries = [fName for fName in os.listdir(fPath) if fName.endswith(fileExt)]
 ### 5, 20, and 30 are a good start
 hs = 5
 ms = 20
-to = 30
+to = 35
 
 # Define constants and options
 fThresh = 135 #below this value will be set to 0.
@@ -81,7 +81,7 @@ MSdorsal = []
 TOarray = []
 TOdorsal = []
 
-# loop through landings, extract row at 5, 12, and 18 after landing 
+# loop through landings, extract rows defined above at landing
 bufferLen = len(dat)
 for landing in landings:
     hsindex = landing + hs
