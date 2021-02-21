@@ -68,15 +68,19 @@ dat = pd.read_csv(fPath+fName,sep='\t', skiprows = 9, header = 0)
 dat['forceTot'] = dat.iloc[:,100:198].sum(axis=1)
 forceTot = dat['forceTot']
 forceTot[forceTot<fThresh] = 0
-plt.plot(forceTot[0:150])
+#plt.plot(forceTot[0:150])
 
 #find the landings and offs of the FP as vectors
 landings = findLandings(forceTot)
 takeoffs = findTakeoffs(forceTot)
 
 HSarray = []
+HSdorsal = []
 MSarray = []
+MSdorsal = []
 TOarray = []
+TOdorsal = []
+
 # loop through landings, extract row at 5, 12, and 18 after landing 
 bufferLen = len(dat)
 for landing in landings:
@@ -89,28 +93,58 @@ for landing in landings:
         print(landing)
     else:
         HSarray.append(list(dat.iloc[hsindex,99:198]))
+        HSdorsal.append(list(dat.iloc[hsindex,1:100]))
         MSarray.append(list(dat.iloc[mdindex,99:198]))
+        MSdorsal.append(list(dat.iloc[mdindex,1:100]))
         TOarray.append(list(dat.iloc[toindex,99:198]))
+        TOdorsal.append(list(dat.iloc[toindex,1:100]))
+
 
 noRows = len(HSarray)
 noCols = 99    
     
+# Plantar pressure aggregation and mean
 HSlist = list(np.mean(np.array(HSarray).reshape((noRows, noCols)), axis = 0))
 MSlist = list(np.mean(np.array(MSarray).reshape((noRows, noCols)), axis = 0))
 TOlist = list(np.mean(np.array(TOarray).reshape((noRows, noCols)), axis = 0))
 
+# Dorsal pressure aggregation and mean
+HSlistd = list(np.mean(np.array(HSdorsal).reshape((noRows, noCols)), axis = 0))
+MSlistd = list(np.mean(np.array(MSdorsal).reshape((noRows, noCols)), axis = 0))
+TOlistd = list(np.mean(np.array(TOdorsal).reshape((noRows, noCols)), axis = 0))
+
+# Reshape to be correct for mapping
 hsAvg = reshapeArray(HSlist)
 msAvg = reshapeArray(MSlist)
 toAvg = reshapeArray(TOlist)
 
-fig, (ax1, ax2, ax3) = plt.subplots(1, 3)
+# Reshape to be correct for mapping
+hsAvgd = reshapeArray(HSlistd)
+msAvgd = reshapeArray(MSlistd)
+toAvgd = reshapeArray(TOlistd)
+
+fig, (ax1, ax2) = plt.subplots(1,2)
 fig.suptitle('Average Pressures across the gait cycle')
-g1 = sns.heatmap(hsAvg, cmap="viridis", ax = ax1)
-g1.set_title('Heel Strike')
+g1 = sns.heatmap(hsAvg, cmap="viridis", ax = ax2)
+g1.set_title('Plantar Heel Strike')
+g4 = sns.heatmap(hsAvgd, cmap="viridis", ax = ax1)
+g4.set_title('Dorsal Heel Strike')
+fig.tight_layout()
+
+fig, ( ax1, ax2 ) = plt.subplots(1,2)
+fig.suptitle('Average Pressures across the gait cycle')
 g2 = sns.heatmap(msAvg, cmap="viridis", ax = ax2)
-g2.set_title('Mid Stance')
-g3 = sns.heatmap(toAvg, cmap="viridis", ax = ax3)
-g3.set_title('Toe Off')
+g2.set_title('Plantar Mid Stance')
+g5 = sns.heatmap(msAvgd, cmap="viridis", ax = ax1)
+g5.set_title('Dorsal Mid Stance')
+fig.tight_layout()
+
+fig, ( ax1, ax2 ) = plt.subplots(1,2)
+fig.suptitle('Average Pressures across the gait cycle')
+g3 = sns.heatmap(toAvg, cmap="viridis", ax = ax2)
+g3.set_title('Plantar Toe Off')
+g6 = sns.heatmap(toAvgd, cmap="viridis", ax = ax1)
+g6.set_title('Dorsal Toe Off')
 fig.tight_layout()
 
 ### options for colors include winter, autumn, blue, and more ###
