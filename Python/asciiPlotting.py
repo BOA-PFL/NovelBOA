@@ -123,38 +123,35 @@ hsAvgd = reshapeArray(HSlistd)
 msAvgd = reshapeArray(MSlistd)
 toAvgd = reshapeArray(TOlistd)
 
+
 fig, (ax1, ax2) = plt.subplots(1,2)
 fig.suptitle('Average Pressures across the gait cycle')
-g1 = sns.heatmap(hsAvg, cmap="viridis", ax = ax2)
+g1 = sns.heatmap(hsAvg, cmap="viridis", ax = ax2, vmin = 0, vmax = 180)
+g1.set(xticklabels=[])
 g1.set_title('Plantar Heel Strike')
-g4 = sns.heatmap(hsAvgd, cmap="viridis", ax = ax1)
+g4 = sns.heatmap(hsAvgd, cmap="viridis", ax = ax1, vmin = 0, vmax = 180, cbar = False)
+g4.set(xticklabels=[])
 g4.set_title('Dorsal Heel Strike')
 fig.tight_layout()
 
 fig, ( ax1, ax2 ) = plt.subplots(1,2)
 fig.suptitle('Average Pressures across the gait cycle')
-g2 = sns.heatmap(msAvg, cmap="viridis", ax = ax2)
+g2 = sns.heatmap(msAvg, cmap="viridis", ax = ax2, vmin = 0, vmax = 180)
+g2.set(xticklabels=[])
 g2.set_title('Plantar Mid Stance')
-g5 = sns.heatmap(msAvgd, cmap="viridis", ax = ax1)
+g5 = sns.heatmap(msAvgd, cmap="viridis", ax = ax1, vmin = 0, vmax = 180)
 g5.set_title('Dorsal Mid Stance')
+g5.set(xticklabels=[])
 fig.tight_layout()
 
 fig, ( ax1, ax2 ) = plt.subplots(1,2)
 fig.suptitle('Average Pressures across the gait cycle')
-g3 = sns.heatmap(toAvg, cmap="viridis", ax = ax2)
+g3 = sns.heatmap(toAvg, cmap="viridis", ax = ax2, vmin = 0, vmax = 180)
+g3.set(xticklabels=[])
 g3.set_title('Plantar Toe Off')
-g6 = sns.heatmap(toAvgd, cmap="viridis", ax = ax1)
+g6 = sns.heatmap(toAvgd, cmap="viridis", ax = ax1, vmin = 0, vmax = 180)
 g6.set_title('Dorsal Toe Off')
+g6.set(xticklabels=[])
 fig.tight_layout()
-
 ### options for colors include winter, autumn, blue, and more ###
 ### need to find a good option for our purpose still 
-
-#startVal = 100
-#for i in np.arange(1,6,1):
-#    tmpArray = list(dat.iloc[i+startVal,99:198])
-#    newDat = reshapeArray(tmpArray)
-#    plt.imshow(newDat, cmap='Blues')
-#    plt.show()
-#    plt.pause(1)
-#    plt.close()
