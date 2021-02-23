@@ -4,11 +4,10 @@ Created on Mon Feb 22 10:28:46 2021
 This script takes in two ascii files from Pedar and runs 2D SPM on them
 They are assumed to be 201 columns and the standard export from Novel.
 The output is plots and SPM at 3 phases of gait (dorsal and plantar) or 
-Left and right. This does SPM in indices from approximate heel strike
+Left and right. This script is based off the peaks in the data not landings!
 You need to specify how many indices after heel strike you want to 
-normalize the parts of the stride to. 
-Hike/walk is usually around 5, 25, and 35 at 50 Hz
-where run should be closer to 3, 10, 15 when sampled at 50 Hz
+normalize the parts of the stride to. Hike/walk is usually around 5, 25, and 35
+where run should be closer to 3, 12, and 18
 
 @author: Daniel.Feeney
 """
@@ -18,23 +17,9 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 import os
+from scipy.signal import find_peaks
 
-# list of functions aside from the mega SPM function below
-# finding landings on the force plate once the filtered force exceeds the force threshold
-def findLandings(force):
-    lic = []
-    for step in range(len(force)-1):
-        if force[step] == 0 and force[step + 1] >= fThresh:
-            lic.append(step)
-    return lic
 
-#Find takeoff from FP when force goes from above thresh to 0
-def findTakeoffs(force):
-    lto = []
-    for step in range(len(force)-1):
-        if force[step] >= fThresh and force[step + 1] == 0:
-            lto.append(step + 1)
-    return lto
 
 def reshapeArray(listIn):
 
@@ -85,18 +70,12 @@ fName2 = entries[1]
 dat = pd.read_csv(fPath+fName,sep='\t', skiprows = 9, header = 0)
 dat2 = pd.read_csv(fPath+fName2,sep='\t', skiprows = 9, header = 0)
 
-### in order to plot same time after landing, need to specify HS, Mid Stance
-### and toe off times here. For running, 5, 12, and 18 work. For walking
-### 5, 20, and 30 are a good start ###
-hs = 2
-ms = 10
-to = 17
-
+### in order to plot same time around the peak force, need to specify HS, Mid Stance
+### and toe off times here. For running, -4, 0, and +5 seem to work
+hs = -5
+ms = 0
+to = 7
 # Define constants and options
-fThresh = 300 #below this value will be set to 0.
-
-#fakeArray = list(np.arange(0,99))
-#fakeReshaped = reshapeArray(fakeArray) #Testing to see if this works
 
 # Create Force signal
 dat['forceTot'] = dat.iloc[:,100:198].sum(axis=1)
@@ -105,11 +84,10 @@ forceTot[forceTot<700] = 0
 
 dat2['forceTot'] = dat2.iloc[:,100:198].sum(axis=1)
 forceTot2 = dat2['forceTot']
-forceTot2[forceTot2<fThresh] = 0
 
-#find the landings and offs of the FP as vectors
-landings = findLandings(forceTot)
-takeoffs = findTakeoffs(forceTot)
+#find the peaks and offs of the FP as vectors
+peaks, _ = find_peaks(forceTot, height=800)
+
 
 
 # Create arrays for heel strike from dataset 1
@@ -122,14 +100,14 @@ TOdorsal = []
 
 # loop through landings, extract rows defined above at landing
 bufferLen = len(dat)
-for landing in landings:
-    hsindex = landing + hs
-    mdindex = landing + ms
-    toindex = landing + to
-    if landing < 15:
-        print(landing)
-    elif (landing + 20 > bufferLen): 
-        print(landing)
+for peak in peaks:
+    hsindex = peak + hs
+    mdindex = peak + ms
+    toindex = peak + to
+    if peak < 15:
+        print(peak)
+    elif (peak + 20 > bufferLen): 
+        print(peak)
     else:
         HSarray.append(list(dat.iloc[hsindex,99:198]))
         HSdorsal.append(list(dat.iloc[hsindex,1:100]))
@@ -139,7 +117,8 @@ for landing in landings:
         TOdorsal.append(list(dat.iloc[toindex,1:100]))
     
 # Create arrays for heel strike from dataset 2
-landings2 = findLandings(forceTot2)
+peaks2, _ = find_peaks(forceTot2, height=800)
+
 
 HSarray2 = []
 HSdorsal2 = []
@@ -150,14 +129,14 @@ TOdorsal2 = []
 
 # loop through landings, extract rows defined above at landing
 bufferLen = len(dat2)
-for landing in landings2:
-    hsindex = landing + hs
-    mdindex = landing + ms
-    toindex = landing + to
-    if landing < 15:
-        print(landing)
-    elif (landing + 20 > bufferLen): 
-        print(landing)
+for peak in peaks2:
+    hsindex = peak + hs
+    mdindex = peak + ms
+    toindex = peak + to
+    if peak < 15:
+        print(peak)
+    elif (peak + 20 > bufferLen): 
+        print(peak)
     else:
         HSarray2.append(list(dat2.iloc[hsindex,99:198]))
         HSdorsal2.append(list(dat2.iloc[hsindex,1:100]))
@@ -257,10 +236,10 @@ def calcSPM2d(stackedDat1, stackedDat2, gaitPhase):
 ## Calculate SPM with functions below for 6 phases
     
 calcSPM2d(stackedHSData, stackedHSData2, 'Heel Strike')
-calcSPM2d(stackedHSDorsal, stackedHSDorsal2, 'Heel Strike Dorsal')
+#calcSPM2d(stackedHSDorsal, stackedHSDorsal2, 'Heel Strike Dorsal')
 
 calcSPM2d(stackedMSData, stackedMSData2, 'Mid Stance')
-calcSPM2d(stackedMSDorsal, stackedMSDorsal2, 'Mid Stance Dorsal')
+#calcSPM2d(stackedMSDorsal, stackedMSDorsal2, 'Mid Stance Dorsal')
 
 calcSPM2d(stackedTOData, stackedTOData2, 'Toe Off')
-calcSPM2d(stackedTODorsal, stackedTODorsal2, 'Toe Off Dorsal')
+#calcSPM2d(stackedTODorsal, stackedTODorsal2, 'Toe Off Dorsal')

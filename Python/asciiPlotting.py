@@ -1,7 +1,9 @@
 # -*- coding: utf-8 -*-
 """
 Created on Mon Nov 30 10:55:52 2020
-
+This plots ascii data from approximated landings. Works okay for hiking and
+walking but not as well for run. Plotting from peaks and running spm from the 
+peak values seems to produce more reliable results 
 @author: Daniel.Feeney
 """
 import pandas as pd

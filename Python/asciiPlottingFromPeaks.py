@@ -1,9 +1,10 @@
 # -*- coding: utf-8 -*-
 """
 Created on Mon Nov 30 10:55:52 2020
-# This relies on plotting based on heel strike approximations. For run data,
-# this may not be a good enough approximation, so using the plotting from peaks 
-# is recommended. 
+# use this to average ascii files from Novel around the peaks rather than 
+# from heel strike as in asciiPlottingOneSide and asciiPlotting
+# This relies on the peaks being over a threshold defined in the script. 
+# Called fThresh. 800 works
 @author: Daniel.Feeney
 """
 import pandas as pd
@@ -11,10 +12,9 @@ import numpy as np
 import matplotlib.pyplot as plt
 import os
 import seaborn as sns
+from scipy.signal import find_peaks
 
-#%matplotlib qt
-# Read in files
-# only read .asc files for this work
+
 fPath = 'C:/Users/Daniel.Feeney/Dropbox (Boa)/EndurancePerformance/Altra_MontBlanc_Jan2021/PedarPressures/'
 fileExt = r".asc"
 entries = [fName for fName in os.listdir(fPath) if fName.endswith(fileExt)]
@@ -22,29 +22,14 @@ entries = [fName for fName in os.listdir(fPath) if fName.endswith(fileExt)]
 ### in order to plot same time after landing, need to specify HS, Mid Stance
 ### and toe off times here. For running, 4, 8, and 12 at 50 Hz suggested. For walking
 ### 5, 20, and 30 are a good start at 50 Hz
-hs = 4
-ms = 8
-to = 12
+hs = -5
+ms = 0
+to = 5
 
+fThresh = 800
 # Define constants and options
-fThresh = 700 #below this value will be set to 0.
+
 # list of functions 
-# finding landings on the force plate once the filtered force exceeds the force threshold
-def findLandings(force):
-    lic = []
-    for step in range(len(force)-1):
-        if force[step] == 0 and force[step + 1] >= fThresh:
-            lic.append(step)
-    return lic
-
-#Find takeoff from FP when force goes from above thresh to 0
-def findTakeoffs(force):
-    lto = []
-    for step in range(len(force)-1):
-        if force[step] >= fThresh and force[step + 1] == 0:
-            lto.append(step + 1)
-    return lto
-
 def reshapeArray(listIn):
 
     listIn.insert(0,0)
@@ -58,23 +43,16 @@ def reshapeArray(listIn):
     outDat = np.flipud(outDat)
     return outDat
 
-#fakeArray = list(np.arange(0,99))
-#reshapeArray(fakeArray) #Testing to see if this works
-
-
-fName = entries[1] #Load one file at a time
+fName = entries[0] #Load one file at a time
         
 dat = pd.read_csv(fPath+fName,sep='\t', skiprows = 9, header = 0)
 
 # Create Force signal
 dat['forceTot'] = dat.iloc[:,100:198].sum(axis=1)
 forceTot = dat['forceTot']
-forceTot[forceTot<fThresh] = 0
-plt.plot(forceTot[0:150])
 
-#find the landings and offs of the FP as vectors
-landings = findLandings(forceTot)
-takeoffs = findTakeoffs(forceTot)
+#find the peaks and offs of the FP as vectors
+peaks, _ = find_peaks(forceTot, height=fThresh)
 
 HSarray = []
 HSdorsal = []
@@ -83,16 +61,16 @@ MSdorsal = []
 TOarray = []
 TOdorsal = []
 
-# loop through landings, extract rows defined above at landing
+# loop through peaks, extract rows defined above at landing
 bufferLen = len(dat)
-for landing in landings:
-    hsindex = landing + hs
-    mdindex = landing + ms
-    toindex = landing + to
-    if landing < 15:
-        print(landing)
-    elif (landing + 20 > bufferLen): 
-        print(landing)
+for peak in peaks:
+    hsindex = peak + hs
+    mdindex = peak + ms
+    toindex = peak + to
+    if peak < 15:
+        print(peak)
+    elif (peak + 20 > bufferLen): 
+        print(peak)
     else:
         HSarray.append(list(dat.iloc[hsindex,99:198]))
         HSdorsal.append(list(dat.iloc[hsindex,1:100]))
