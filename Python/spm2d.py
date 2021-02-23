@@ -74,12 +74,12 @@ def calcStackedArray(inputArray, correctArrayLen):
 #%matplotlib qt
 # Read in files
 # only read .asc files for this work
-fPath = 'C:/Users/Daniel.Feeney/Dropbox (Boa)/EnduranceProtocolWork/PressureASCII/'
+fPath = 'C:/Users/Daniel.Feeney/Dropbox (Boa)/EndurancePerformance/Altra_MontBlanc_Jan2021/PedarPressures/'
 fileExt = r".asc"
 entries = [fName for fName in os.listdir(fPath) if fName.endswith(fileExt)]
 
-fName = entries[3] # Pick 2 files
-fName2 = entries[4]
+fName = entries[0] # Pick 2 files
+fName2 = entries[1]
         
 dat = pd.read_csv(fPath+fName,sep='\t', skiprows = 9, header = 0)
 dat2 = pd.read_csv(fPath+fName2,sep='\t', skiprows = 9, header = 0)
@@ -87,12 +87,12 @@ dat2 = pd.read_csv(fPath+fName2,sep='\t', skiprows = 9, header = 0)
 ### in order to plot same time after landing, need to specify HS, Mid Stance
 ### and toe off times here. For running, 5, 12, and 18 work. For walking
 ### 5, 20, and 30 are a good start ###
-hs = 5
-ms = 20
-to = 35
+hs = 2
+ms = 10
+to = 17
 
 # Define constants and options
-fThresh = 215 #below this value will be set to 0.
+fThresh = 300 #below this value will be set to 0.
 
 #fakeArray = list(np.arange(0,99))
 #fakeReshaped = reshapeArray(fakeArray) #Testing to see if this works
@@ -100,7 +100,7 @@ fThresh = 215 #below this value will be set to 0.
 # Create Force signal
 dat['forceTot'] = dat.iloc[:,100:198].sum(axis=1)
 forceTot = dat['forceTot']
-forceTot[forceTot<fThresh] = 0
+forceTot[forceTot<700] = 0
 
 dat2['forceTot'] = dat2.iloc[:,100:198].sum(axis=1)
 forceTot2 = dat2['forceTot']
@@ -221,7 +221,7 @@ def calcSPM2d(stackedDat1, stackedDat2, gaitPhase):
     i       = np.logical_and(iA, iB)  #indices where variance > 0 for both tasks
     
     ynz     = y[:,i]    #all observations with non-zero variance nodes removed
-    ynz2    = y[:,i]
+    ynz2    = y2[:,i]
     ynzA    = ynz  #Task A observations with non-zero variance nodes removed
     ynzB    = ynz2  #Task B observations with non-zero variance nodes removed
     
