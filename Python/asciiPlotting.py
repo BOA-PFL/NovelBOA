@@ -56,8 +56,8 @@ def reshapeArray(listIn):
     outDat = np.flipud(outDat)
     return outDat
 
-fakeArray = list(np.arange(0,99))
-reshapeArray(fakeArray) #Testing to see if this works
+#fakeArray = list(np.arange(0,99))
+#reshapeArray(fakeArray) #Testing to see if this works
 
 
 fName = entries[3] #Load one file at a time
@@ -155,3 +155,19 @@ g6.set(xticklabels=[])
 fig.tight_layout()
 ### options for colors include winter, autumn, blue, and more ###
 ### need to find a good option for our purpose still 
+
+### Sim values for presentation ###
+fakeArray = list(np.arange(0,99))
+leftFoot = reshapeArray(fakeArray) #Testing to see if this works
+fakeArray = list(np.arange(0,99))
+rightFoot = reshapeArray(fakeArray) #Testing to see if this works
+# Simulated pressures
+fig, ( ax1, ax2 ) = plt.subplots(1,2)
+fig.suptitle('Pressures at Turn Initiation')
+g3 = sns.heatmap(rightFoot, cmap="jet", ax = ax2, vmin = 0, vmax = 100)
+g3.set(xticklabels=[])
+g3.set_title('Right')
+g6 = sns.heatmap(leftFoot, cmap="jet", ax = ax1, vmin = 0, vmax = 100)
+g6.set_title('Left Foot')
+g6.set(xticklabels=[])
+fig.tight_layout()

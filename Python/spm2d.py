@@ -221,8 +221,9 @@ def calcSPM2d(stackedDat1, stackedDat2, gaitPhase):
     i       = np.logical_and(iA, iB)  #indices where variance > 0 for both tasks
     
     ynz     = y[:,i]    #all observations with non-zero variance nodes removed
-    ynzA    = ynz[:10]  #Task A observations with non-zero variance nodes removed
-    ynzB    = ynz[10:]  #Task B observations with non-zero variance nodes removed
+    ynz2    = y[:,i]
+    ynzA    = ynz  #Task A observations with non-zero variance nodes removed
+    ynzB    = ynz2  #Task B observations with non-zero variance nodes removed
     
     # Run the tests
     snpm    = spm1d.stats.nonparam.ttest2(ynzA, ynzB)
