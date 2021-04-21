@@ -17,15 +17,16 @@ fThresh = 85; #below this value will be set to 0.
 minStepLen = 10; #minimal step length
 writeData = 0; #will write to spreadsheet if 1 entered
 desiredStepLength = 20; #length to look forward after initial contact
-apple = 0; #1 for apple 0 otherwise
+apple = 1; #1 for apple 0 otherwise
 
 # Read in file and add names
 fPath = 'C:/Users/Daniel.Feeney/Dropbox (Boa)/Endurance Protocol Trail Run/Outdoor_Protocol_March2020/KH/'
+fPath = 'C:/Users/Daniel.Feeney/Dropbox (Boa)/EndurancePerformance/SalomonQuicklace_Aug2020/'
 entries = os.listdir(fPath)
 fName = entries[1] #temporarily hard coding one file
 
-dat = pd.read_csv(fPath+fName,sep='\t', skiprows = 4, header = 0)
-dat.columns = ['Time', 'LeftHeel', 'LeftMedial','LeftLateral','Left','Time2','RightLateral','RightMedial','RightHeel','Right','pass']
+dat = pd.read_csv(fPath+fName,sep='\s+', skiprows = 3, header = 0)
+dat.columns = ['Time', 'LeftHeel', 'LeftMedial','LeftLateral','Left','Time2','RightLateral','RightMedial','RightHeel','Right']
 
 subName = fName.split(sep = "_")[0]
 config = fName.split(sep = "_")[1]

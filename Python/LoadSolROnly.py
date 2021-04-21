@@ -66,11 +66,7 @@ for file in entries[5:7]:
             if RForce[step] >= fThresh and RForce[step + 1] == 0:
                 rto.append(step + 1)
                 count = count + 1
-        
-###### extract relevent features ###### 
-
-        
-        #%%
+    
         
         # Right side
         MaxR = []
