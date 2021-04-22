@@ -37,48 +37,7 @@ def findTakeoffs(force):
     return lto
 
 ### File Structure: Dorsal Forefoot, Metatarsals (.1), Midfoot (.2), plantar mets  (.3), plantar toes (.4), plantar heel  (.5)
-sdRHeel = []
-meanRHeel = []
-sdRLatFF = []
-meanRLatFF = []
-sdRMedFF = []
-meanRMedFF = []
-sdRLatMF = []
-meanRLatMF = []
-sdRMedMF = []
-meanRMedMF = []
-sdRToes = []
-meanRToes = []
 
-maxRHeel = []
-maxRLatFF = []
-maxRMedFF = []
-maxRLatMF = []
-maxRMedMF = []
-maxRToes = []
-
-CT = []
-
-# sdRDorsalLatFF = []
-# meanRDorsalLatFF = []
-# sdRDorsalMedFF = []
-# meanRDorsalMedFF = []
-# sdRDorsalLatMF = []
-# meanRDorsalLatMF = []
-# sdRDorsalMedMF = []
-# meanRDorsalMedMF = []
-
-# maxRDorsalLatFF = []
-# maxRDorsalMedFF = []
-# maxRDorsalLatMF = []
-# maxRDorsalMedMF = []
-
-#HeelPMidStance = []
-#HeelRateDecay = []
-trial = []
-Subject = []
-Condition = []
-Config = []
 
 #first columns (FF, Mets, and MF) all relate to dorsal values. Once you get to PlantMetsForce it is plantar metatarsal force 
 #and everything to the right of that column is plantar side. Each location (e.g. FF, MF, etc.) has force, max Pressure, Mean Pressure, and pct
@@ -86,23 +45,49 @@ Config = []
 for file in entries:
     try:
         
+        sdRHeel = []
+        meanRHeel = []
+        sdRLatFF = []
+        meanRLatFF = []
+        sdRMedFF = []
+        meanRMedFF = []
+        sdRLatMF = []
+        meanRLatMF = []
+        sdRMedMF = []
+        meanRMedMF = []
+        sdRToes = []
+        meanRToes = []
+        
+        maxRHeel = []
+        maxRLatFF = []
+        maxRMedFF = []
+        maxRLatMF = []
+        maxRMedMF = []
+        maxRToes = []
+        
+        CT = []
+        
+        trial = []
+        Subject = []
+        Condition = []
+        Config = []
+        
         fName = file #Load one file at a time
         
         subName = fName.split(sep = "_")[0]
         ConditionTmp = fName.split(sep="_")[2]
         ConfigTmp = fName.split(sep="_")[1]
         
-        dat = pd.read_csv(fPath+fName,sep='\t', skiprows = 16, header = 0)
+        dat = pd.read_csv(fPath+fName,sep='\t', skiprows = 15, header = 0)
         
         dat.columns = ['Time','RHeel_Force', 'RHeel_MaxP', 'RHeel_MeanP', 'RHeel_pct', 
                        'RMedMF_Force','RMedMF_MaxP', 'RMedMF_MeanP', 'RMedMF_pct', 
                        'RLatMF_Force', 'RLatMF_MaxP', 'RLatMF_MeanP','RLatMF_pct',
                        'RMedFF_Force','RMedFF_MaxP', 'RMedFF_MeanP', 'RMedFF_pct', 
                        'RLatFF_Force', 'RLatFF_MaxP', 'RLatFF_MeanP','RLatFF_pct',
-                       'RToes_Force','RToes_MaxP', 'RToes_MeanP', 'RToes_Pct', 'RForce_Tot', 'RForce_Filt'
-                       
-            ]
-        dat['Force'] = dat.RForce_Filt
+                       'RToes_Force','RToes_MaxP', 'RToes_MeanP', 'RToes_Pct']
+        
+        dat['Force'] = dat.RHeel_Force + dat.RLatMF_Force + dat.RMedMF_Force + dat.RToes_Force
         #filtering force to find landings/takeoffs    
           
         plt.plot(dat.Time, dat.Force)
@@ -114,20 +99,39 @@ for file in entries:
         
         forceTot = dat.Force
         forceTot[forceTot<fThresh] = 0
-        dat.forceFilt = forceTot
+        #dat.forceFilt = forceTot
         
         
     
        #find the landings and offs of the FP as vectors
         landings = findLandings(forceTot)
         takeoffs = findTakeoffs(forceTot)
-        
-        for landing in landings:
+
+
+        for counterVar, landing in enumerate(landings):
             try:
-               # Appending dorsal pressure data
-              
                 #HeelPMidStance.append(dat.HeelMaxP[landing+25])
                 #HeelRateDecay.append(dat.HeelMaxP[landing+10] - dat.HeelMaxP[landing+18])
+                # With takeoffs enabled
+                # sdRHeel.append(np.std(dat.RHeel_MeanP[landing:takeoffs[counterVar]])) 
+                # meanRHeel.append(np.mean(dat.RHeel_MeanP[landing:takeoffs[counterVar]]))
+                # sdRLatMF.append(np.std(dat.RLatMF_MeanP[landing:takeoffs[counterVar]]))
+                # meanRLatMF.append(np.mean(dat.RLatMF_MeanP[landing:takeoffs[counterVar]]))
+                # sdRMedMF.append(np.std(dat.RMedMF_MeanP[landing:takeoffs[counterVar]]))
+                # meanRMedMF.append(np.mean(dat.RMedMF_MeanP[landing:takeoffs[counterVar]]))
+                # sdRLatFF.append(np.std(dat.RLatFF_MeanP[landing:takeoffs[counterVar]]))
+                # meanRLatFF.append(np.mean(dat.RLatFF_MeanP[landing:takeoffs[counterVar]]))
+                # sdRMedFF.append(np.std(dat.RMedFF_MeanP[landing:takeoffs[counterVar]]))
+                # meanRMedFF.append(np.mean(dat.RMedFF_MeanP[landing:takeoffs[counterVar]]))
+                # sdRToes.append(np.std(dat.RToes_MeanP[landing:takeoffs[counterVar]]))
+                # meanRToes.append(np.mean(dat.RToes_MeanP[landing:takeoffs[counterVar]]))
+                # maxRHeel.append(np.max(dat.RHeel_MaxP[landing:takeoffs[counterVar]]))
+                # maxRLatMF.append(np.max(dat.RLatMF_MaxP[landing:takeoffs[counterVar]]))
+                # maxRMedMF.append(np.max(dat.RMedMF_MaxP[landing:takeoffs[counterVar]]))
+                # maxRLatFF.append(np.max(dat.RLatFF_MaxP[landing:takeoffs[counterVar]]))
+                # maxRMedFF.append(np.max(dat.RMedFF_MaxP[landing:takeoffs[counterVar]]))
+                # maxRToes.append(np.max(dat.RToes_MaxP[landing:takeoffs[counterVar]]))
+                # Without takeoffs enabled
                 sdRHeel.append(np.std(dat.RHeel_MeanP[landing:landing+stepLen])) 
                 meanRHeel.append(np.mean(dat.RHeel_MeanP[landing:landing+stepLen]))
                 sdRLatMF.append(np.std(dat.RLatMF_MeanP[landing:landing+stepLen]))
@@ -138,7 +142,7 @@ for file in entries:
                 meanRLatFF.append(np.mean(dat.RLatFF_MeanP[landing:landing+stepLen]))
                 sdRMedFF.append(np.std(dat.RMedFF_MeanP[landing:landing+stepLen]))
                 meanRMedFF.append(np.mean(dat.RMedFF_MeanP[landing:landing+stepLen]))
-                sdRToes.append(np.std(dat.RToes_MeanP[landing:landing+stepLen]))
+                sdRToes.append(np.std(dat.RToes_MeanP[landing:takeoffs[counterVar]]))
                 meanRToes.append(np.mean(dat.RToes_MeanP[landing:landing+stepLen]))
                 maxRHeel.append(np.max(dat.RHeel_MaxP[landing:landing+stepLen]))
                 maxRLatMF.append(np.max(dat.RLatMF_MaxP[landing:landing+stepLen]))
@@ -148,19 +152,6 @@ for file in entries:
                 maxRToes.append(np.max(dat.RToes_MaxP[landing:landing+stepLen]))
                
                 trial.append(fName)
-                # Appending Plantar pressure data
-                # sdRDorsalMedFF.append(np.std(dat.RDorsalMedFF_MeanP[landing:landing+stepLen]))
-                # meanRDorsalMedFF.append(np.mean(dat.RDorsalMedFF_MeanP[landing:landing+stepLen]))
-                # sdRDorsalLatFF.append(np.std(dat.RDorsalLatFF_MeanP[landing:landing+stepLen]))
-                # meanRDorsalLatFF.append(np.mean(dat.RDorsalLatFF_MeanP[landing:landing+stepLen]))
-                # sdRDorsalMedMF.append(np.std(dat.RDorsalMedMF_MeanP[landing:landing+stepLen]))
-                # meanRDorsalMedMF.append(np.mean(dat.RDorsalMedMF_MeanP[landing:landing+stepLen]))
-                # sdRDorsalLatMF.append(np.std(dat.RDorsalLatMF_MeanP[landing:landing+stepLen]))
-                # meanRDorsalLatMF.append(np.mean(dat.RDorsalLatMF_MeanP[landing:landing+stepLen]))
-                # maxRDorsalMedFF.append(np.max(dat.RDorsalMedFF_MaxP[landing:landing+stepLen]))
-                # maxRDorsalLatFF.append(np.max(dat.RDorsalLatFF_MaxP[landing:landing+stepLen]))
-                # maxRDorsalMedMF.append(np.max(dat.RDorsalMedMF_MaxP[landing:landing+stepLen]))  
-                # maxRDorsalLatMF.append(np.max(dat.RDorsalLatMF_MaxP[landing:landing+stepLen])) 
                 Subject.append(subName)
                 Condition.append(ConditionTmp)
                 Config.append(ConfigTmp)
@@ -178,14 +169,15 @@ for file in entries:
                                          'sdRToes':list(sdRToes),'meanRToes':list(meanRToes), 
                                          'maxRHeel':list(maxRHeel), 'maxRLatMF':list(maxRLatMF), 'maxRMedMF':list(maxRMedMF), 'maxRLatFF':list(maxRLatFF), 'maxRMedFF':list(maxRMedFF), 'maxRToes':list(maxRToes)
                                          })
-                
-                
-                outcomes.to_csv("C:/Users/daniel.feeney/Dropbox (Boa)/AgilityPerformance/BOA_mechanisticStudy/Skater_MVA/CompiledPressureData2.csv", sep =",", mode='a', header=False)
-
             except:
                 print(landing)
+        
+        outcomes.to_csv("C:/Users/daniel.feeney/Dropbox (Boa)/AgilityPerformance/BOA_mechanisticStudy/Skater_MVA/CompiledPressureDataNew1.csv", mode= 'a', header=False)
+
     except:
         print(file)       
+
+
 ## plotting
 #landingToPlot = 3
 #fig, ax1 = plt.subplots()
