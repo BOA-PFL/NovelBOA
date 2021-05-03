@@ -60,7 +60,7 @@ def calcStackedArray(inputArray, correctArrayLen):
 #%matplotlib qt
 # Read in files
 # only read .asc files for this work
-fPath = 'C:/Users/Daniel.Feeney/Dropbox (Boa)/EndurancePerformance/Altra_MontBlanc_Jan2021/PedarPressures/'
+fPath = 'C:/Users/kate.harrison/Dropbox (Boa)/EndurancePerformance/SauconyEndorphinPro_Feb2021/PedarData/'
 fileExt = r".asc"
 entries = [fName for fName in os.listdir(fPath) if fName.endswith(fileExt)]
 
