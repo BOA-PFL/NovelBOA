@@ -12,13 +12,16 @@ import os
 
 # Read in files
 # only read .asc files for this work
-fPath = 'C:/Users/daniel.feeney/Dropbox (Boa)/AgilityPerformance/BOA_mechanisticStudy/Skater_MVA/'
+fPath = 'C:\\Users\\Daniel.Feeney\\Dropbox (Boa)\\Hike Work Research\\Work Pilot 2021/'
 fileExt = r".mva"
 entries = [fName for fName in os.listdir(fPath) if fName.endswith(fileExt)]
 
 # Define constants and options
 fThresh = 0 #below this value will be set to 0.
 stepLen = 45 #Set value to look forward 
+autoDetectTakeoff = 0 #if this is 1, it will try to find landings and takeoffs. 0 means it will look forward the step length
+
+
 # list of functions 
 # finding landings on the force plate once the filtered force exceeds the force threshold
 def findLandings(force):
@@ -44,6 +47,9 @@ def findTakeoffs(force):
 
 for file in entries:
     try:
+ 
+        fName = file 
+        #print(file)
         
         sdRHeel = []
         meanRHeel = []
@@ -72,30 +78,40 @@ for file in entries:
         Condition = []
         Config = []
         
-        fName = file #Load one file at a time
         
         subName = fName.split(sep = "_")[0]
         ConditionTmp = fName.split(sep="_")[2]
         ConfigTmp = fName.split(sep="_")[1]
         
-        dat = pd.read_csv(fPath+fName,sep='\t', skiprows = 15, header = 0)
+        dat = pd.read_csv(fPath+fName,sep='\t', skiprows = 16, header = 0)
         
         dat.columns = ['Time','RHeel_Force', 'RHeel_MaxP', 'RHeel_MeanP', 'RHeel_pct', 
-                       'RMedMF_Force','RMedMF_MaxP', 'RMedMF_MeanP', 'RMedMF_pct', 
-                       'RLatMF_Force', 'RLatMF_MaxP', 'RLatMF_MeanP','RLatMF_pct',
-                       'RMedFF_Force','RMedFF_MaxP', 'RMedFF_MeanP', 'RMedFF_pct', 
-                       'RLatFF_Force', 'RLatFF_MaxP', 'RLatFF_MeanP','RLatFF_pct',
-                       'RToes_Force','RToes_MaxP', 'RToes_MeanP', 'RToes_Pct']
+                       'RLatFF_Force','RLatFF_MaxP', 'RLatFF_MeanP', 'RLatFF_pct', 
+                       'RMedFF_Force', 'RMedFF_MaxP', 'RMedFF_MeanP','RMedFF_pct',
+                       'RToes_Force','RToes_MaxP', 'RToes_MeanP', 'RToes_pct', 
+                       'RDMedFF_Force', 'RDMedFF_MaxP', 'RDMedFF_MeanP','RDMedFF_pct',
+                       'RDLatFF_Force','RDLat_MaxP', 'RDLat_MeanP', 'RDLat_Pct',
+                       'RDMedMF_Force','RDMedMF_MaxP','RDMedMF_MeanP','RDMedMF_Pct',
+                       'RDLatMF_Force','RDLatMF_MaxP','RDLatMF_MeanP','RDLatMF_Pct']
         
-        dat['Force'] = dat.RHeel_Force + dat.RLatMF_Force + dat.RMedMF_Force + dat.RToes_Force
+        # dat.columns = ['Time','RHeel_Force', 'RHeel_MaxP', 'RHeel_MeanP', 'RHeel_pct', 
+        #        'RMedMF_Force','RMedMF_MaxP', 'RMedMF_MeanP', 'RMedMF_pct', 
+        #        'RLatMF_Force', 'RLatMF_MaxP', 'RLatMF_MeanP','RLatMF_pct',
+        #        'RMedFF_Force','RMedFF_MaxP', 'RMedFF_MeanP', 'RMedFF_pct', 
+        #        'RLatFF_Force', 'RLatFF_MaxP', 'RLatFF_MeanP','RLatFF_pct',
+        #        'RToes_Force','RToes_MaxP', 'RToes_MeanP', 'RToes_Pct']
+        
+        dat['Force'] = dat.RHeel_Force + dat.RLatFF_Force + dat.RMedFF_Force + dat.RToes_Force
         #filtering force to find landings/takeoffs    
           
-        plt.plot(dat.Time, dat.Force)
-        print('Click a zero point on the plot')
-        minClick = plt.ginput(1)
-        plt.clf()
-        minExtract = minClick[0]
-        (x, fThresh) = minExtract
+        fig, ax = plt.subplots()
+        ax.plot(dat.Force, label = 'Left Total Force')
+        print('Select a point to represent 0 in the trial')
+        pts = np.asarray(plt.ginput(1, timeout=-1))
+        plt.close()
+        fThresh = pts[0][1]
+        # downselect the region of the dataframe you'd like
+        
         
         forceTot = dat.Force
         forceTot[forceTot<fThresh] = 0
@@ -110,46 +126,46 @@ for file in entries:
 
         for counterVar, landing in enumerate(landings):
             try:
-                #HeelPMidStance.append(dat.HeelMaxP[landing+25])
-                #HeelRateDecay.append(dat.HeelMaxP[landing+10] - dat.HeelMaxP[landing+18])
-                # With takeoffs enabled
-                # sdRHeel.append(np.std(dat.RHeel_MeanP[landing:takeoffs[counterVar]])) 
-                # meanRHeel.append(np.mean(dat.RHeel_MeanP[landing:takeoffs[counterVar]]))
-                # sdRLatMF.append(np.std(dat.RLatMF_MeanP[landing:takeoffs[counterVar]]))
-                # meanRLatMF.append(np.mean(dat.RLatMF_MeanP[landing:takeoffs[counterVar]]))
-                # sdRMedMF.append(np.std(dat.RMedMF_MeanP[landing:takeoffs[counterVar]]))
-                # meanRMedMF.append(np.mean(dat.RMedMF_MeanP[landing:takeoffs[counterVar]]))
-                # sdRLatFF.append(np.std(dat.RLatFF_MeanP[landing:takeoffs[counterVar]]))
-                # meanRLatFF.append(np.mean(dat.RLatFF_MeanP[landing:takeoffs[counterVar]]))
-                # sdRMedFF.append(np.std(dat.RMedFF_MeanP[landing:takeoffs[counterVar]]))
-                # meanRMedFF.append(np.mean(dat.RMedFF_MeanP[landing:takeoffs[counterVar]]))
-                # sdRToes.append(np.std(dat.RToes_MeanP[landing:takeoffs[counterVar]]))
-                # meanRToes.append(np.mean(dat.RToes_MeanP[landing:takeoffs[counterVar]]))
-                # maxRHeel.append(np.max(dat.RHeel_MaxP[landing:takeoffs[counterVar]]))
-                # maxRLatMF.append(np.max(dat.RLatMF_MaxP[landing:takeoffs[counterVar]]))
-                # maxRMedMF.append(np.max(dat.RMedMF_MaxP[landing:takeoffs[counterVar]]))
-                # maxRLatFF.append(np.max(dat.RLatFF_MaxP[landing:takeoffs[counterVar]]))
-                # maxRMedFF.append(np.max(dat.RMedFF_MaxP[landing:takeoffs[counterVar]]))
-                # maxRToes.append(np.max(dat.RToes_MaxP[landing:takeoffs[counterVar]]))
-                # Without takeoffs enabled
-                sdRHeel.append(np.std(dat.RHeel_MeanP[landing:landing+stepLen])) 
-                meanRHeel.append(np.mean(dat.RHeel_MeanP[landing:landing+stepLen]))
-                sdRLatMF.append(np.std(dat.RLatMF_MeanP[landing:landing+stepLen]))
-                meanRLatMF.append(np.mean(dat.RLatMF_MeanP[landing:landing+stepLen]))
-                sdRMedMF.append(np.std(dat.RMedMF_MeanP[landing:landing+stepLen]))
-                meanRMedMF.append(np.mean(dat.RMedMF_MeanP[landing:landing+stepLen]))
-                sdRLatFF.append(np.std(dat.RLatFF_MeanP[landing:landing+stepLen]))
-                meanRLatFF.append(np.mean(dat.RLatFF_MeanP[landing:landing+stepLen]))
-                sdRMedFF.append(np.std(dat.RMedFF_MeanP[landing:landing+stepLen]))
-                meanRMedFF.append(np.mean(dat.RMedFF_MeanP[landing:landing+stepLen]))
-                sdRToes.append(np.std(dat.RToes_MeanP[landing:takeoffs[counterVar]]))
-                meanRToes.append(np.mean(dat.RToes_MeanP[landing:landing+stepLen]))
-                maxRHeel.append(np.max(dat.RHeel_MaxP[landing:landing+stepLen]))
-                maxRLatMF.append(np.max(dat.RLatMF_MaxP[landing:landing+stepLen]))
-                maxRMedMF.append(np.max(dat.RMedMF_MaxP[landing:landing+stepLen]))
-                maxRLatFF.append(np.max(dat.RLatFF_MaxP[landing:landing+stepLen]))
-                maxRMedFF.append(np.max(dat.RMedFF_MaxP[landing:landing+stepLen]))
-                maxRToes.append(np.max(dat.RToes_MaxP[landing:landing+stepLen]))
+                
+                                # Without takeoffs enabled
+                if autoDetectTakeoff:
+                    sdRHeel.append(np.std(dat.RHeel_MeanP[landing:takeoffs[counterVar]])) 
+                    meanRHeel.append(np.mean(dat.RHeel_MeanP[landing:takeoffs[counterVar]]))
+                    
+                    sdRLatFF.append(np.std(dat.RLatFF_MeanP[landing:takeoffs[counterVar]]))
+                    meanRLatFF.append(np.mean(dat.RLatFF_MeanP[landing:takeoffs[counterVar]]))
+                    
+                    sdRMedFF.append(np.std(dat.RMedFF_MeanP[landing:takeoffs[counterVar]]))
+                    meanRMedFF.append(np.mean(dat.RMedFF_MeanP[landing:takeoffs[counterVar]]))
+                    
+                    sdRToes.append(np.std(dat.RToes_MeanP[landing:takeoffs[counterVar]]))
+                    meanRToes.append(np.mean(dat.RToes_MeanP[landing:takeoffs[counterVar]]))
+                    
+                    maxRHeel.append(np.max(dat.RHeel_MaxP[landing:takeoffs[counterVar]]))
+                    maxRLatFF.append(np.max(dat.RLatFF_MaxP[landing:takeoffs[counterVar]]))
+                    maxRMedFF.append(np.max(dat.RMedFF_MaxP[landing:takeoffs[counterVar]]))
+                    maxRToes.append(np.max(dat.RToes_MaxP[landing:takeoffs[counterVar]]))
+                
+                else:
+                
+                    sdRHeel.append(np.std(dat.RHeel_MeanP[landing:landing+stepLen])) 
+                    meanRHeel.append(np.mean(dat.RHeel_MeanP[landing:landing+stepLen]))
+                    
+                    sdRLatFF.append(np.std(dat.RLatFF_MeanP[landing:landing+stepLen]))
+                    meanRLatFF.append(np.mean(dat.RLatFF_MeanP[landing:landing+stepLen]))
+                    
+                    sdRMedFF.append(np.std(dat.RMedFF_MeanP[landing:landing+stepLen]))
+                    meanRMedFF.append(np.mean(dat.RMedFF_MeanP[landing:landing+stepLen]))
+                    
+                    sdRToes.append(np.std(dat.RToes_MeanP[landing:landing+stepLen]))
+                    meanRToes.append(np.mean(dat.RToes_MeanP[landing:landing+stepLen]))
+                    
+                    maxRHeel.append(np.max(dat.RHeel_MaxP[landing:landing+stepLen]))
+                    maxRLatFF.append(np.max(dat.RLatFF_MaxP[landing:landing+stepLen]))
+                    maxRMedFF.append(np.max(dat.RMedFF_MaxP[landing:landing+stepLen]))
+                    maxRToes.append(np.max(dat.RToes_MaxP[landing:landing+stepLen]))
+               
+
                
                 trial.append(fName)
                 Subject.append(subName)
@@ -162,17 +178,15 @@ for file in entries:
                         
                 outcomes = pd.DataFrame({'Subject':list(Subject),'Condition':list(Condition), 'Config':list(Config),
                                          'sdRHeel': list(sdRHeel),'meanRHeel':list(meanRHeel), 
-                                         'sdRLatMF':list(sdRLatMF), 'meanRLatMF':list(meanRLatMF),
-                                         'sdRMedMF':list(sdRMedMF),'meanRMedMF':list(meanRMedMF),
                                          'sdRLatFF':list(sdRLatFF), 'meanRLatFF':list(meanRLatFF),
-                                         'sdRMedFF':list(sdRMedFF),'meanRMedFF':list(meanRMedFF), 
+                                         'sdRMedFF':list(sdRMedFF),'meanRMedFF':list(meanRMedFF),
                                          'sdRToes':list(sdRToes),'meanRToes':list(meanRToes), 
-                                         'maxRHeel':list(maxRHeel), 'maxRLatMF':list(maxRLatMF), 'maxRMedMF':list(maxRMedMF), 'maxRLatFF':list(maxRLatFF), 'maxRMedFF':list(maxRMedFF), 'maxRToes':list(maxRToes)
+                                         'maxRHeel':list(maxRHeel), 'maxRLatMF':list(maxRLatFF), 'maxRMedMF':list(maxRMedFF), 'maxRLatFF':list(maxRLatFF), 'maxRMedFF':list(maxRMedFF), 'maxRToes':list(maxRToes)
                                          })
             except:
                 print(landing)
         
-        outcomes.to_csv("C:/Users/daniel.feeney/Dropbox (Boa)/AgilityPerformance/BOA_mechanisticStudy/Skater_MVA/CompiledPressureDataNew1.csv", mode= 'a', header=False)
+        outcomes.to_csv("C:\\Users\\Daniel.Feeney\\Dropbox (Boa)\\Hike Work Research\\Work Pilot 2021/pressuresComb.csv", mode= 'a', header=False)
 
     except:
         print(file)       
