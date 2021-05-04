@@ -203,45 +203,54 @@ for file in entries:
 
 
 ## plotting
-#landingToPlot = 3
-#fig, ax1 = plt.subplots()
+landingToPlot = 2
+fig = plt.figure()
+ax1 = fig.add_subplot(111)
+
+color = 'tab:red'
+ax1.set_xlabel('time')
+ax1.set_ylabel('TotalForce(N)', color=color)
+ax1.plot(dat.Force[landings[landingToPlot]:takeoffs[landingToPlot]], color=color, label = 'Total Force')
+ax1.tick_params(axis='y', labelcolor=color)
+
+ax2 = ax1.twinx()  # instantiate a second axes that shares the same x-axis
+
+ax2.set_ylabel('Dorsal Max Pressures')  # we already handled the x-label with ax1
+ax2.plot(dat.RDLatFF_MaxP[landings[landingToPlot]:takeoffs[landingToPlot]], label = 'Max Lat FF Pressure')
+ax2.plot(dat.RDMedFF_MaxP[landings[landingToPlot]:takeoffs[landingToPlot]], label = 'Max Med FF Pressure')
+ax2.plot(dat.RDLatMF_MaxP[landings[landingToPlot]:takeoffs[landingToPlot]], label = 'Max Lat MF Pressure')
+ax2.plot(dat.RDMedMF_MaxP[landings[landingToPlot]:takeoffs[landingToPlot]], label = 'Max Med MF Pressure')
+# ask matplotlib for the plotted objects and their labels
+h1, l1 = ax1.get_legend_handles_labels()
+h2, l2 = ax2.get_legend_handles_labels()
+ax1.legend(h1+h2, l1+l2, loc=2)
+fig.tight_layout()  # otherwise the right y-label is slightly clipped
+plt.show()
 #
-#color = 'tab:red'
-#ax1.set_xlabel('time')
-#ax1.set_ylabel('TotalForce(N)', color=color)
-#ax1.plot(dat.Force[landings[landingToPlot]:landings[landingToPlot]+stepLen], color=color)
-#ax1.tick_params(axis='y', labelcolor=color)
-#
-#ax2 = ax1.twinx()  # instantiate a second axes that shares the same x-axis
-#
-#ax2.set_ylabel('Max Pressures')  # we already handled the x-label with ax1
-#ax2.plot(dat.FFMaxP[landings[landingToPlot]:landings[landingToPlot]+stepLen])
-#ax2.plot(dat.MetsMaxP[landings[landingToPlot]:landings[landingToPlot]+stepLen])
-#ax2.plot(dat.MFMaxP[landings[landingToPlot]:landings[landingToPlot]+stepLen])
-#plt.legend()
-#
-#fig.tight_layout()  # otherwise the right y-label is slightly clipped
-#plt.show()
-#
+
 ## mean pressure
-#fig, ax1 = plt.subplots()
-#
-#color = 'tab:red'
-#ax1.set_xlabel('time')
-#ax1.set_ylabel('TotalForce(N)', color=color)
-#ax1.plot(dat.Force[landings[landingToPlot]:landings[landingToPlot]+stepLen], color=color)
-#ax1.tick_params(axis='y', labelcolor=color)
-#
-#ax2 = ax1.twinx()  # instantiate a second axes that shares the same x-axis
-#
-#ax2.set_ylabel('Max Pressures')  # we already handled the x-label with ax1
-#ax2.plot(dat.FFMeanP[landings[landingToPlot]:landings[landingToPlot]+stepLen])
-#ax2.plot(dat.MetsMeanP[landings[landingToPlot]:landings[landingToPlot]+stepLen])
-#ax2.plot(dat.MFMeanP[landings[landingToPlot]:landings[landingToPlot]+stepLen])
-#plt.legend()
-#
-#fig.tight_layout()  # otherwise the right y-label is slightly clipped
-#plt.show()
+fig = plt.figure()
+ax1 = fig.add_subplot(111)
+
+color = 'tab:red'
+ax1.set_xlabel('time')
+ax1.set_ylabel('TotalForce(N)', color=color)
+ax1.plot(dat.Force[landings[landingToPlot]:takeoffs[landingToPlot]], color=color, label = 'Total Force')
+ax1.tick_params(axis='y', labelcolor=color)
+
+ax2 = ax1.twinx()  # instantiate a second axes that shares the same x-axis
+
+ax2.set_ylabel('Dorsal Mean Pressures (kPa)')  # we already handled the x-label with ax1
+ax2.plot(dat.RDLatFF_MeanP[landings[landingToPlot]:takeoffs[landingToPlot]], label = 'Mean Lat FF Pressure')
+ax2.plot(dat.RDMedFF_MeanP[landings[landingToPlot]:takeoffs[landingToPlot]], label = 'Mean Med FF Pressure')
+ax2.plot(dat.RDLatMF_MeanP[landings[landingToPlot]:takeoffs[landingToPlot]], label = 'Mean Lat MF Pressure')
+ax2.plot(dat.RDMedMF_MeanP[landings[landingToPlot]:takeoffs[landingToPlot]], label = 'Mean Med MF Pressure')
+# ask matplotlib for the plotted objects and their labels
+h1, l1 = ax1.get_legend_handles_labels()
+h2, l2 = ax2.get_legend_handles_labels()
+ax1.legend(h1+h2, l1+l2, loc=2)
+fig.tight_layout()  # otherwise the right y-label is slightly clipped
+plt.show()
     
 # mean pressure
 #fig, ax1 = plt.subplots()
