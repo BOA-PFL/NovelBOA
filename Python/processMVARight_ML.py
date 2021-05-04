@@ -12,14 +12,14 @@ import os
 
 # Read in files
 # only read .asc files for this work
-fPath = 'C:\\Users\\Daniel.Feeney\\Dropbox (Boa)\\Hike Work Research\\Work Pilot 2021/'
+fPath = 'C:\\Users\\Daniel.Feeney\\Dropbox (Boa)\\Hike Work Research\\Work Pilot 2021\\Pressures\\'
 fileExt = r".mva"
 entries = [fName for fName in os.listdir(fPath) if fName.endswith(fileExt)]
 
 # Define constants and options
-fThresh = 0 #below this value will be set to 0.
+#fThresh = 0 #below this value will be set to 0.
 stepLen = 45 #Set value to look forward 
-autoDetectTakeoff = 0 #if this is 1, it will try to find landings and takeoffs. 0 means it will look forward the step length
+autoDetectTakeoff = 1 #if this is 1, it will try to find landings and takeoffs. 0 means it will look forward the step length
 
 
 # list of functions 
@@ -90,7 +90,7 @@ for file in entries:
                        'RMedFF_Force', 'RMedFF_MaxP', 'RMedFF_MeanP','RMedFF_pct',
                        'RToes_Force','RToes_MaxP', 'RToes_MeanP', 'RToes_pct', 
                        'RDMedFF_Force', 'RDMedFF_MaxP', 'RDMedFF_MeanP','RDMedFF_pct',
-                       'RDLatFF_Force','RDLat_MaxP', 'RDLat_MeanP', 'RDLat_Pct',
+                       'RDLatFF_Force','RDLatFF_MaxP', 'RDLatFF_MeanP', 'RDLatFF_Pct',
                        'RDMedMF_Force','RDMedMF_MaxP','RDMedMF_MeanP','RDMedMF_Pct',
                        'RDLatMF_Force','RDLatMF_MaxP','RDLatMF_MeanP','RDLatMF_Pct']
         
@@ -103,22 +103,34 @@ for file in entries:
         
         dat['Force'] = dat.RHeel_Force + dat.RLatFF_Force + dat.RMedFF_Force + dat.RToes_Force
         #filtering force to find landings/takeoffs    
-          
+        # delimit trial
         fig, ax = plt.subplots()
-        ax.plot(dat.Force, label = 'Left Total Force')
+        ax.plot(dat.Force, label = 'Right Total Force')
+        fig.legend()
+        print('Select start and end of analysis trial')
+        pts = np.asarray(plt.ginput(2, timeout=-1))
+        plt.close()
+        # downselect the region of the dataframe you'd like
+        dat = dat.iloc[int(np.floor(pts[0,0])) : int(np.floor(pts[1,0])),:]
+        dat = dat.reset_index()
+        
+        # find threshold force
+        fig, ax = plt.subplots()
+        ax.plot(dat.Force, label = 'Right Foot Force')
         print('Select a point to represent 0 in the trial')
         pts = np.asarray(plt.ginput(1, timeout=-1))
         plt.close()
         fThresh = pts[0][1]
         # downselect the region of the dataframe you'd like
-        
-        
+
         forceTot = dat.Force
         forceTot[forceTot<fThresh] = 0
+        forceTot = np.array(forceTot)
+        # plt.plot(forceTot)
+        # plt.close()
         #dat.forceFilt = forceTot
         
         
-    
        #find the landings and offs of the FP as vectors
         landings = findLandings(forceTot)
         takeoffs = findTakeoffs(forceTot)
@@ -172,9 +184,7 @@ for file in entries:
                 Condition.append(ConditionTmp)
                 Config.append(ConfigTmp)
 
-                #the outcomes dataframe uses the same logic (first set are dorsal pressures until maxPlantMetP, 
-                #then everything is plantar unless noted otherwise), then midstanceHeelP is the heel pressure at 
-                #mid stance and the heel decay from peak (which is a bit finnicky at the moment). 
+                #the outcomes below are entirely on the plantar aspect of the foot
                         
                 outcomes = pd.DataFrame({'Subject':list(Subject),'Condition':list(Condition), 'Config':list(Config),
                                          'sdRHeel': list(sdRHeel),'meanRHeel':list(meanRHeel), 
