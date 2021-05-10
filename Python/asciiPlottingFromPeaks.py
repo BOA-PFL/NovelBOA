@@ -16,17 +16,18 @@ from scipy.signal import find_peaks
 
 
 fPath = 'C:/Users/Daniel.Feeney/Dropbox (Boa)/EndurancePerformance/Altra_MontBlanc_Jan2021/PedarPressures/'
+fPath = 'C:\\Users\\Daniel.Feeney\\Dropbox (Boa)\\Hike Work Research\\Work Pilot 2021\\Pressures\\'
 fileExt = r".asc"
 entries = [fName for fName in os.listdir(fPath) if fName.endswith(fileExt)]
 
 ### in order to plot same time after landing, need to specify HS, Mid Stance
 ### and toe off times here. For running, 4, 8, and 12 at 50 Hz suggested. For walking
 ### 5, 20, and 30 are a good start at 50 Hz
-hs = -5
-ms = 0
-to = 5
+hs = -25
+ms = -10
+to = 0
 
-fThresh = 800
+#fThresh = 800
 # Define constants and options
 
 # list of functions 
@@ -43,14 +44,33 @@ def reshapeArray(listIn):
     outDat = np.flipud(outDat)
     return outDat
 
-fName = entries[0] #Load one file at a time
+fName = entries[4] #Load one file at a time
         
-dat = pd.read_csv(fPath+fName,sep='\t', skiprows = 9, header = 0)
+dat = pd.read_csv(fPath+fName,sep='\t', skiprows = 16, header = 0)
 
+# define trial and force threshold
 # Create Force signal
 dat['forceTot'] = dat.iloc[:,100:198].sum(axis=1)
-forceTot = dat['forceTot']
+fig, ax = plt.subplots()
+ax.plot(dat.forceTot, label = 'Right Total Force')
+fig.legend()
+print('Select start and end of analysis trial')
+pts = np.asarray(plt.ginput(2, timeout=-1))
+plt.close()
+# downselect the region of the dataframe you'd like
+dat = dat.iloc[int(np.floor(pts[0,0])) : int(np.floor(pts[1,0])),:]
+dat = dat.reset_index()
 
+# find threshold force
+fig, ax = plt.subplots()
+ax.plot(dat.forceTot, label = 'Right Foot Force')
+print('Select a point to threshold peak force')
+pts = np.asarray(plt.ginput(1, timeout=-1))
+plt.close()
+fThresh = pts[0][1]
+# make np array for below operation
+forceTot = dat['forceTot']
+#find peaks
 #find the peaks and offs of the FP as vectors
 peaks, _ = find_peaks(forceTot, height=fThresh)
 
