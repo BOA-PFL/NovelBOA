@@ -211,7 +211,7 @@ for file in entries:
             except:
                 print(landing)
         
-        outcomes.to_csv("C:\\Users\\Daniel.Feeney\\Dropbox (Boa)\\Hike Work Research\\Work Pilot 2021/pressuresComb3.csv", mode= 'a', header=False)
+        outcomes.to_csv("C:\\Users\\Daniel.Feeney\\Dropbox (Boa)\\Hike Work Research\\Work Pilot 2021/pressuresComb.csv", mode= 'a', header=False)
 
     except:
         print(file)       
