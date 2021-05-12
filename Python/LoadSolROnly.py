@@ -32,7 +32,9 @@ desiredStepLength = 25; #length to look forward after initial contact
 
 # Read in file and add names
 fPath = 'C:/Users/Daniel.Feeney/Dropbox (Boa)/EndurancePerformance/Altra_MontBlanc_Jan2021/RawData/'
-entries = os.listdir(fPath)
+fPath = 'C:\\Users\\Daniel.Feeney\\Dropbox (Boa)\\EndurancePerformance\\SalomonQuicklace_Aug2020\\'
+fileExt = r".txt"
+entries = [fName for fName in os.listdir(fPath) if fName.endswith(fileExt)]
 
 for file in entries[5:7]:
     try:

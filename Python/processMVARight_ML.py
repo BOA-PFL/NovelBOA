@@ -45,7 +45,7 @@ def findTakeoffs(force):
 #first columns (FF, Mets, and MF) all relate to dorsal values. Once you get to PlantMetsForce it is plantar metatarsal force 
 #and everything to the right of that column is plantar side. Each location (e.g. FF, MF, etc.) has force, max Pressure, Mean Pressure, and pct
 
-for file in entries:
+for file in entries[12:15]:
     try:
  
         fName = file 

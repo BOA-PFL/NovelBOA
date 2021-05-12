@@ -21,9 +21,11 @@ apple = 1; #1 for apple 0 otherwise
 
 # Read in file and add names
 fPath = 'C:/Users/Daniel.Feeney/Dropbox (Boa)/Endurance Protocol Trail Run/Outdoor_Protocol_March2020/KH/'
-fPath = 'C:/Users/Daniel.Feeney/Dropbox (Boa)/EndurancePerformance/SalomonQuicklace_Aug2020/'
-entries = os.listdir(fPath)
-fName = entries[1] #temporarily hard coding one file
+fPath = 'C:\\Users\\Daniel.Feeney\\Dropbox (Boa)\\EndurancePerformance\\SalomonQuicklace_Aug2020\\'
+fileExt = r".txt"
+entries = [fName for fName in os.listdir(fPath) if fName.endswith(fileExt)]
+
+fName = entries[0] #temporarily hard coding one file
 
 dat = pd.read_csv(fPath+fName,sep='\s+', skiprows = 3, header = 0)
 dat.columns = ['Time', 'LeftHeel', 'LeftMedial','LeftLateral','Left','Time2','RightLateral','RightMedial','RightHeel','Right']
