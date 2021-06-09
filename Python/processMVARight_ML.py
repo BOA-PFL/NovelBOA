@@ -20,7 +20,7 @@ entries = [fName for fName in os.listdir(fPath) if fName.endswith(fileExt)]
 #fThresh = 0 #below this value will be set to 0.
 stepLen = 45 #Set value to look forward 
 autoDetectTakeoff = 1 #if this is 1, it will try to find landings and takeoffs. 0 means it will look forward the step length
-plottingEnabled = 1
+plottingEnabled = 0
 
 # list of functions 
 # finding landings on the force plate once the filtered force exceeds the force threshold
@@ -45,7 +45,7 @@ def findTakeoffs(force):
 #first columns (FF, Mets, and MF) all relate to dorsal values. Once you get to PlantMetsForce it is plantar metatarsal force 
 #and everything to the right of that column is plantar side. Each location (e.g. FF, MF, etc.) has force, max Pressure, Mean Pressure, and pct
 
-for file in entries[12:15]:
+for file in entries[3:6]:
     try:
  
         fName = file 
@@ -86,7 +86,7 @@ for file in entries[12:15]:
         ConditionTmp = fName.split(sep="_")[2]
         ConfigTmp = fName.split(sep="_")[1]
         
-        dat = pd.read_csv(fPath+fName,sep='\t', skiprows = 16, header = 0)
+        dat = pd.read_csv(fPath+fName,sep='\t', skiprows = 9, header = 0)
         
         dat.columns = ['Time','RHeel_Force', 'RHeel_MaxP', 'RHeel_MeanP', 'RHeel_pct', 
                        'RLatFF_Force','RLatFF_MaxP', 'RLatFF_MeanP', 'RLatFF_pct', 

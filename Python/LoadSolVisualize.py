@@ -10,6 +10,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import os
 
+fThresh = 80
 
 # Delineate the climb and downhill portion of trial
 def delimitTrial(inputDF):
@@ -85,11 +86,10 @@ climbLandings = findLandings(climbForce)
 downLandings = findLandings(downForce)
 
 
-
-stepLen = 25
+stepLen = 30
 x = np.linspace(0,stepLen,stepLen)
-stackedClimbF = forceMatrix(climbForce, climbLandings, 10, 25)
-stackedDownF = forceMatrix(downForce, downLandings, 10, 25)
+stackedClimbF = forceMatrix(climbForce, climbLandings, 10, stepLen)
+stackedDownF = forceMatrix(downForce, downLandings, 10, stepLen)
 
 
 avgClimbF = np.mean(stackedClimbF, axis = 0)
@@ -112,3 +112,28 @@ ax2.set_title('Downhill Force')
 ax2.set_ylabel('Force (N)')
 ax2.set_xlabel('Time (cs)')
 plt.tight_layout()
+#temporary
+fig, (ax1, ax2, ax3) = plt.subplots(3)
+ax1.plot(x,avgClimbF, 'k', color='#003D4C', label = 'climb force')
+ax1.fill_between(x,avgClimbF-sdClimbF, avgClimbF+sdClimbF,
+    alpha=0.5, edgecolor='#003D4C', facecolor='#003D4C')
+ax1.set_ylim([0,2200])
+ax1.set_title('Uphill Force')
+ax1.set_ylabel('Force (N)')
+ax2.plot(x,avgDownF, 'k', color='#00966C', label = 'climb force')
+ax2.fill_between(x,avgDownF-sdDownF, avgDownF+sdDownF,
+    alpha=0.5, edgecolor='#00966C', facecolor='#00966C')
+ax2.set_ylim([0,2500])
+ax2.set_title('Downhill Force')
+ax2.set_ylabel('Force (N)')
+
+ax3.plot(x,avgF, 'k', color='#000000', label = 'climb force')
+ax3.fill_between(x,avgF-sdF, avgF+sdF,
+    alpha=0.5, edgecolor='#000000', facecolor='#000000')
+ax3.set_ylim([0,2500])
+ax3.set_title('Treadmill Vertical Force')
+ax3.set_ylabel('Force (N)')
+ax3.set_xlabel('Time')
+plt.tight_layout()
+# Remember: transparent=True
+# plt.savefig("testPlot.pdf", transparent=True)
