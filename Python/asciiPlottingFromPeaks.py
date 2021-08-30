@@ -16,16 +16,16 @@ from scipy.signal import find_peaks
 
 
 fPath = 'C:/Users/Daniel.Feeney/Dropbox (Boa)/EndurancePerformance/Altra_MontBlanc_Jan2021/PedarPressures/'
-fPath = 'C:\\Users\\Daniel.Feeney\\Dropbox (Boa)\\Hike Work Research\\Work Pilot 2021\\Pressures\\'
+fPath = 'C:\\Users\\daniel.feeney\\Boa Technology Inc\\PFL - General\\Cycling2021\\EH_CyclingPilot_2021\\Pressures\\'
 fileExt = r".asc"
 entries = [fName for fName in os.listdir(fPath) if fName.endswith(fileExt)]
 
 ### in order to plot same time after landing, need to specify HS, Mid Stance
 ### and toe off times here. For running, 4, 8, and 12 at 50 Hz suggested. For walking
 ### 5, 20, and 30 are a good start at 50 Hz
-hs = -25
-ms = -10
-to = 0
+hs = -10
+ms = 0
+to = 5
 
 #fThresh = 800
 # Define constants and options
@@ -44,7 +44,7 @@ def reshapeArray(listIn):
     outDat = np.flipud(outDat)
     return outDat
 
-fName = entries[4] #Load one file at a time
+fName = entries[5] #Load one file at a time
         
 dat = pd.read_csv(fPath+fName,sep='\t', skiprows = 16, header = 0)
 
@@ -64,7 +64,7 @@ dat = dat.reset_index()
 # find threshold force
 fig, ax = plt.subplots()
 ax.plot(dat.forceTot, label = 'Right Foot Force')
-print('Select a point to threshold peak force')
+print('Select a point to threshold peak force (should be above all secondary peaks')
 pts = np.asarray(plt.ginput(1, timeout=-1))
 plt.close()
 fThresh = pts[0][1]
@@ -123,19 +123,19 @@ hsAvgd = reshapeArray(HSlistd)
 msAvgd = reshapeArray(MSlistd)
 toAvgd = reshapeArray(TOlistd)
 
-
+maxP = 150
 fig, ( ax1, ax2, ax3 ) = plt.subplots(1,3)
-g1 = sns.heatmap(hsAvg, cmap="jet", ax = ax1, vmin = 0, vmax = 250)
+g1 = sns.heatmap(hsAvg, cmap="jet", ax = ax1, vmin = 0, vmax = maxP)
 g1.set(xticklabels=[])
 g1.set_title('Plantar Initial Contact')
 #mid stance
 fig.suptitle('Average Pressures across the gait cycle')
-g2 = sns.heatmap(msAvg, cmap="jet", ax = ax2, vmin = 0, vmax = 250)
+g2 = sns.heatmap(msAvg, cmap="jet", ax = ax2, vmin = 0, vmax = maxP)
 g2.set(xticklabels=[])
 g2.set_title('Plantar Mid Stance')
 # Toe off
 fig.suptitle('Average Pressures across the gait cycle')
-g3 = sns.heatmap(toAvg, cmap="jet", ax = ax3, vmin = 0, vmax = 250)
+g3 = sns.heatmap(toAvg, cmap="jet", ax = ax3, vmin = 0, vmax = maxP)
 g3.set(xticklabels=[])
 g3.set_title('Plantar Toe Off')
 fig.tight_layout()
