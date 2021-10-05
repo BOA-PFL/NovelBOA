@@ -23,10 +23,11 @@ entries = [fName for fName in os.listdir(fPath) if fName.endswith(fileExt)]
 ### in order to plot same time after landing, need to specify HS, Mid Stance
 ### and toe off times here. For running, 4, 8, and 12 at 50 Hz suggested. For walking
 ### 5, 20, and 30 are a good start at 50 Hz
-hs = -10
+hs = 5
 ms = 0
 to = 5
 
+fName = entries[28] #Load one file at a time
 #fThresh = 800
 # Define constants and options
 
@@ -44,7 +45,7 @@ def reshapeArray(listIn):
     outDat = np.flipud(outDat)
     return outDat
 
-fName = entries[5] #Load one file at a time
+
         
 dat = pd.read_csv(fPath+fName,sep='\t', skiprows = 16, header = 0)
 
@@ -127,17 +128,16 @@ maxP = 150
 fig, ( ax1, ax2, ax3 ) = plt.subplots(1,3)
 g1 = sns.heatmap(hsAvg, cmap="jet", ax = ax1, vmin = 0, vmax = maxP)
 g1.set(xticklabels=[])
-g1.set_title('Plantar Initial Contact')
+g1.set_title('Top of Pedal')
 #mid stance
 fig.suptitle('Average Pressures across the gait cycle')
 g2 = sns.heatmap(msAvg, cmap="jet", ax = ax2, vmin = 0, vmax = maxP)
 g2.set(xticklabels=[])
-g2.set_title('Plantar Mid Stance')
+g2.set_title('Max Force')
 # Toe off
-fig.suptitle('Average Pressures across the gait cycle')
 g3 = sns.heatmap(toAvg, cmap="jet", ax = ax3, vmin = 0, vmax = maxP)
 g3.set(xticklabels=[])
-g3.set_title('Plantar Toe Off')
+g3.set_title('Bottom of Pedal')
 fig.tight_layout()
 ### options for colors include winter, autumn, blue, and more ###
 ### need to find a good option for our purpose still 
