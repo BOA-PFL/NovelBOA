@@ -32,7 +32,9 @@ desiredStepLength = 25; #length to look forward after initial contact
 
 # Read in file and add names
 fPath = 'C:/Users/Daniel.Feeney/Dropbox (Boa)/EndurancePerformance/Altra_MontBlanc_Jan2021/RawData/'
-entries = os.listdir(fPath)
+fPath = 'C:\\Users\\Daniel.Feeney\\Dropbox (Boa)\\EndurancePerformance\\SalomonQuicklace_Aug2020\\'
+fileExt = r".txt"
+entries = [fName for fName in os.listdir(fPath) if fName.endswith(fileExt)]
 
 for file in entries[5:7]:
     try:
@@ -40,7 +42,7 @@ for file in entries[5:7]:
         fName = file
         
         dat = pd.read_csv(fPath+fName,sep='\s+', skiprows = 3, header = 0)
-        dat = dat.drop(dat.columns[[5,6,7,8]], axis=1)  
+        #dat = dat.drop(dat.columns[[5,6,7,8]], axis=1)  
         dat.columns = ['Time', 'RightLateral','RightMedial','RightHeel','RightTotal']
         
         subName = fName.split(sep = "_")[0]
@@ -66,21 +68,7 @@ for file in entries[5:7]:
             if RForce[step] >= fThresh and RForce[step + 1] == 0:
                 rto.append(step + 1)
                 count = count + 1
-        
-        # ## plotting left side
-        # fig, ax = plt.subplots(4)
-        # for i in range(noSteps):
-        #     ax[0].plot(RightMat[i,:])
-        #     ax[1].plot(RHeelMat[i,:])
-        #     ax[2].plot(RLatMat[i,:])
-        #     ax[3].plot(RMedMat[i,:])
-            
-        # ax[0].set_title('Total Right Force')
-        # ax[1].set_title('Right Heel Force')
-        # ax[2].set_title('Right Lateral Force')
-        # ax[3].set_title('Right Medial Force')
-        
-        #%%
+    
         
         # Right side
         MaxR = []
@@ -118,10 +106,41 @@ for file in entries[5:7]:
                       'PkLat': list(pkLatR), 'LatImp': list(latImpulseR), 'PkMed': list(pkMedR),
                       'MedImp': list(medImpulseR)})
         
-        rightDat.to_csv('C:/Users/Daniel.Feeney/Dropbox (Boa)/EndurancePerformance/Altra_MontBlanc_Jan2021/RawData//SummarizedResults3.csv', mode='a', header=False)
+        #rightDat.to_csv('C:/Users/Daniel.Feeney/Dropbox (Boa)/EndurancePerformance/Altra_MontBlanc_Jan2021/RawData//SummarizedResults3.csv', mode='a', header=False)
 
     except:
         print(file)
 
 
 
+### Optional plotting section for a single file
+RTot = []
+RHeel = []
+RLat = []
+RMed = []
+    
+for landing in ric:
+    RTot.append(RForce[landing:landing+desiredStepLength])
+    RHeel.append(dat.RightHeel[landing:landing+desiredStepLength])
+    RLat.append(dat.RightLateral[landing:landing+desiredStepLength])
+    RMed.append(dat.RightMedial[landing:landing+desiredStepLength])
+noSteps = len(ric)
+
+####
+RightMat = np.reshape(RTot, (noSteps,desiredStepLength))
+RHeelMat = np.reshape(RHeel, (noSteps, desiredStepLength))
+RLatMat = np.reshape(RLat, (noSteps, desiredStepLength))
+RMedMat = np.reshape(RMed, (noSteps,desiredStepLength))
+
+## plotting left side
+fig, ax = plt.subplots(4)
+for i in range(noSteps):
+    ax[0].plot(RightMat[i,:])
+    ax[1].plot(RHeelMat[i,:])
+    ax[2].plot(RLatMat[i,:])
+    ax[3].plot(RMedMat[i,:])
+    
+ax[0].set_title('Total Right Force')
+ax[1].set_title('Right Heel Force')
+ax[2].set_title('Right Lateral Force')
+ax[3].set_title('Right Medial Force')

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
 Created on Wed Dec 16 16:19:30 2020
-
+When you have both sides of data from loadsol
 @author: Daniel.Feeney
 """
 
@@ -13,10 +13,11 @@ import os
 # Read in files
 # only read .asc files for this work
 fPath = 'C:/Users/Daniel.Feeney/Dropbox (Boa)/Snow Protocol/SnowboardProtocol/'
+fPath = 'C:/Users/Daniel.Feeney/Dropbox (Boa)/Snow Protocol/4onthefloor/loadsoldata/'
 entries = os.listdir(fPath)
 
 
-for file in entries:
+for file in entries[2:8]:
     try:
         fName = file
         dat = pd.read_csv(fPath+fName,sep='         ', skiprows = 3, header = 0, index_col = False)
@@ -82,7 +83,7 @@ for file in entries:
         maxRFDupR = [ np.max(dat.RToes[toeTurnStart:toeTurnStart+100].diff()) for toeTurnStart in realToeStart ]
         maxRFDdnR = [ np.min(dat.RToes[toeTurnStart:toeTurnStart+100].diff()) for toeTurnStart in realToeStart ]
         timeToPeakR = [ list(dat.RToes[toeTurnStart:toeTurnStart+100]).index(max(dat.RToes[toeTurnStart:toeTurnStart+100])) for toeTurnStart in realToeStart ]
-        stdPeakR = [ np.std(dat.RToes[times-10:times+10]) for times in timeToPeakL ]
+        stdPeakR = [ np.std(dat.RToes[times-10:times+10]) for times in timeToPeakR ]
         noRight = list(np.repeat('R', len(stdPeakR)))
         noToes = list(np.repeat('Toes', len(noLeft + noRight)))
         
@@ -125,9 +126,9 @@ for file in entries:
      
     
 ###### After finding starts of turns, find avg, SD, CV, etc. for each turn ####
-dat = dat.reset_index()
-turnToPlot = 0
-fwdLook = 100
+# dat = dat.reset_index()
+# turnToPlot = 0
+# fwdLook = 100
 
 
 # fig, ax = plt.subplots(2)
