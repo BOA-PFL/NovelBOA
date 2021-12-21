@@ -3,6 +3,11 @@
 Created on Wed Dec 16 16:19:30 2020
 When you have both sides of data from loadsol
 @author: Daniel.Feeney
+
+Overview: using the peak force values as a starting point & looking backward 
+for the force to drop below a threshold (defined with ginput) to define as the 
+turn start. Looking forward from peak to the next index where force drops below 
+the threshold to delimit turn completion. 
 """
 
 import pandas as pd
@@ -14,7 +19,9 @@ from scipy.signal import find_peaks
 def makeTurnPlot(RF,RL,RM,RH,LF,LL,LM,LH):
     """
     Function takes in time series of force on left and right sides
-    and plots them for each turn using equal height y-axes
+    and plots them for each turn using equal height y-axes.
+    Used primarily when creating the functions but is mostly turned off for 
+    processing. 
     """
     fig, (ax1, ax2) = plt.subplots(1,2)
     ax1.plot(RF, color = 'r', label = 'Right Force')
@@ -90,13 +97,13 @@ for file in entries:
         lTurn = []
         for turn in peaks[1:len(peaks)]:
             # subset the force signal, flip np array and find first index below threshold (turnStart)
-            tmpForce = np.array(dat.RTotal[turn-80:turn])
+            tmpForce = np.array(dat.RTotal[turn-150:turn])
             tmpForceRev = np.flip(tmpForce)
             try:
                 turnStart = turn - next(x for x, val in enumerate(tmpForceRev) if val < minForce) # first index > minForce  
                 tmpForce2 = dat.RTotal[turn:turn+100]
                 turnEnd = turn + next(x for x, val in enumerate(tmpForce2) if val < minForce)
-                ### CHECK THESE TODO ##
+                ### define indices for each turn from 0 ##
                 ts = 0
                 te = turnEnd - turnStart
                 tp = turn - turnStart

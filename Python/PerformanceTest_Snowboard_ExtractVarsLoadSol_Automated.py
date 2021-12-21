@@ -112,9 +112,9 @@ for file in entries:
                 print(turn)
 
         leftOutcomes = pd.DataFrame({'TurnSide':list(totalLeftToe),'MaxForce':list(maxFL), 'RFDUp':list(maxRFDupL), 'RFDdn':list(maxRFDdnL),
-                                     'cvPeak':list(cvPeakL), 'TimeToPk':list(timeToPeakL)})
+                                     'cvPeak':list(cvPeakL), 'TimeToPk':list(timeToPeakL), 'turnType':list(turnType)})
         rightOutcomes = pd.DataFrame({'TurnSide':list(totalRightToe),'MaxForce':list(maxFR), 'RFDUp':list(maxRFDupR), 'RFDdn':list(maxRFDdnR),
-                                     'cvPeak':list(cvPeakR), 'TimeToPk':list(timeToPeakR)})
+                                     'cvPeak':list(cvPeakR), 'TimeToPk':list(timeToPeakR), 'turnType':list(turnType)})
         
         # meta naming #
         totalLength = len(totalRightToe) + len(totalRightToe) 
@@ -124,6 +124,7 @@ for file in entries:
         totalOutput = pd.concat( [leftOutcomes, rightOutcomes] )
         totalOutput['Subject'] = longSubject
         totalOutput['Config'] = longConfig
+        
         
         totalOutput.to_csv('C:/Users/Daniel.Feeney/Dropbox (Boa)/Snow Protocol/SnowboardProtocol/Results/snowboardResults.csv', mode='a', header=False)
 
