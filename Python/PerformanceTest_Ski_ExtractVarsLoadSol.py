@@ -174,7 +174,7 @@ for file in entries:
                 tmpLL = np.array( dat.LLateral[turnStart:turnEnd] )
                 tmpLM = np.array( dat.LMedial[turnStart:turnEnd] )
                 tmpLH = np.array( dat.LHeel[turnStart:turnEnd] )
-                makeTurnPlot(tmpRF, tmpRL, tmpRM, tmpRH, tmpLF, tmpLL, tmpLM, tmpLH)
+                #makeTurnPlot(tmpRF, tmpRL, tmpRM, tmpRH, tmpLF, tmpLL, tmpLM, tmpLH)
                 
                 rPks.append( np.max(tmpLF) ) #peak force
                 rPkLatEarly.append( np.max(tmpLL[ts:tp]) )
