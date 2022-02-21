@@ -8,6 +8,11 @@ Overview: using the peak force values as a starting point & looking backward
 for the force to drop below a threshold (defined with ginput) to define as the 
 turn start. Looking forward from peak to the next index where force drops below 
 the threshold to delimit turn completion. 
+
+Notes from 2/21 with larger dataset:
+    DF - left turns not well triggered with algorithm
+    BC - some turns were too short by algo, added a continue statement to help
+    RCF - only one side collected during V2 (entries 20 and 21)
 """
 
 import pandas as pd
@@ -39,7 +44,9 @@ def makeTurnPlot(RF,RL,RM,RH,LF,LL,LM,LH):
     
 # Read in files
 # only read .asc files for this work
-fPath = 'C:\\Users\\daniel.feeney\\iCloudDrive\\iCloud~de~novel~loadsols\\SkiTesting\\'
+#fPath = 'C:\\Users\\daniel.feeney\\iCloudDrive\\iCloud~de~novel~loadsols\\SkiTesting\\'
+## Example data lives in there and work well ## 
+fPath = 'C:\\Users\\daniel.feeney\\Boa Technology Inc\\PFL - General\\Snow Performance\\Alpine_V1vsV2_Internal_Feb2022\\ForceData\\'
 entries = os.listdir(fPath)
 
 
@@ -49,8 +56,12 @@ for file in entries:
         dat = pd.read_csv(fPath+fName, sep = '	',skiprows = 3, header = 0, index_col = False)
         dat.columns = ['Time', 'LHeel', 'LMedial','LLateral','LTotal', 'Time2', 
                        'RLateral','RMedial','RHeel','RTotal', 'time2','accX','axxY','accZ','pass']
-        #subName = fName.split(sep = "_")[0]
-        #configName = fName.split(sep = "_")[1]
+        
+        #dat.columns = ['Time','RHeel','RLateral','RMedial','RTotal','Time2','se','ei','ni','te']
+        #use above if one side only
+        
+        subName = fName.split(sep = "_")[0]
+        configName = fName.split(sep = "_")[1]
         
         dat['LToes'] = dat.LMedial + dat.LLateral
         dat['RToes'] = dat.RMedial + dat.RLateral
@@ -95,6 +106,8 @@ for file in entries:
         pkMedInsideLate = []
         cvForce = []
         lTurn = []
+        sName = []
+        cName = []
         for turn in peaks[1:len(peaks)]:
             # subset the force signal, flip np array and find first index below threshold (turnStart)
             tmpForce = np.array(dat.RTotal[turn-150:turn])
@@ -127,10 +140,12 @@ for file in entries:
                 pkMedInsideLate.append( np.max(tmpLM[tp:te]) )
                 cvForce.append( (np.std(tmpRF[tp-20:tp+20]) / np.mean(tmpRF[tp-20:tp+20])) * 100 )
                 lTurn.append('left')
+                sName.append(subName)
+                cName.append(configName)
             except:
                 print('never reached min force turn ' + str(turn))
             
-        outcomes = pd.DataFrame({'TurnType': list(lTurn),'PeakForce':list(lPks),
+        outcomes = pd.DataFrame({'Subject':list(sName),'Config':list(cName),'TurnType': list(lTurn),'PeakForce':list(lPks),
                                  'PkLatForceEarly':list(lPkLatEarly), 'PkMedForceEarly':list(lPkMedEarly),
                                  'PkHeelLate':list(pkHeelLate),'pkMedInsideLate':list(pkMedInsideLate),
                                  'CVForce':list(cvForce)})
@@ -153,6 +168,8 @@ for file in entries:
         rpkMedInsideLate = []
         rcvForce = []
         rTurn = []
+        sName2 = []
+        cName2 = []
         for turn in leftPeaks[1:len(leftPeaks)]:
             # subset the force signal, flip np array and find first index below threshold (turnStart)
             tmpForce = np.array(dat.LTotal[turn-80:turn])
@@ -162,6 +179,10 @@ for file in entries:
                  
                 tmpForce2 = dat.LTotal[turn:turn+100]
                 turnEnd = turn + next(x for x, val in enumerate(tmpForce2) if val < minForce)
+                turnLen = turnEnd - turnStart
+                if turnLen < 50:
+                    continue
+                
                 ts = 0
                 te = turnEnd - turnStart
                 tp = turn - turnStart
@@ -184,17 +205,19 @@ for file in entries:
                 rpkMedInsideLate.append( np.max(tmpRM[tp:te]) )
                 rcvForce.append( (np.std(tmpLF[tp-20:tp+20]) / np.mean(tmpLF[tp-20:tp+20])) * 100 )
                 rTurn.append('Right')
+                sName2.append(subName)
+                cName2.append(configName)
             except:
                 print('never reached min force turn ' + str(turn))
         ### end of turn detection algorithm ###
         
-        outcomesRight = pd.DataFrame({'TurnType': list(rTurn),'PeakForce':list(rPks),
+        outcomesRight = pd.DataFrame({'Subject':list(sName2),'Config':list(cName2),'TurnType': list(rTurn),'PeakForce':list(rPks),
                          'PkLatForceEarly':list(rPkLatEarly), 'PkMedForceEarly':list(rPkMedEarly),
                          'PkHeelLate':list(rpkHeelLate),'pkMedInsideLate':list(rpkMedInsideLate),
                          'CVForce':list(rcvForce)})
 
         totalOutput = pd.concat( [outcomes, outcomesRight] )
-        totalOutput.to_csv('C:\\Users\\daniel.feeney\\Boa Technology Inc\\PFL - General\\Snow_Alpine_Pilot\\LoadsolAlpineTesting\\testresults.csv', mode='a', header=False)
+        totalOutput.to_csv('C:\\Users\\daniel.feeney\\Boa Technology Inc\\PFL - General\\Snow Performance\\Alpine_V1vsV2_Internal_Feb2022\\testresults.csv', mode='a', header=False)
 
     except:
         print(file)
