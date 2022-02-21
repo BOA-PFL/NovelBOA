@@ -12,7 +12,7 @@ the threshold to delimit turn completion.
 Notes from 2/21 with larger dataset:
     DF - left turns not well triggered with algorithm
     BC - some turns were too short by algo, added a continue statement to help
-    RCF - only one side collected during V2 (entries 20 and 21)
+    RCF - only right side collected during V2 (entries 20 and 21)
 """
 
 import pandas as pd
