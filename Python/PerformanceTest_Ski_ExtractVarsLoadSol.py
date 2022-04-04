@@ -19,7 +19,22 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import os
-from scipy.signal import find_peaks
+from scipy import signal
+from tkinter.filedialog import askopenfilenames
+
+def findRightTurns(RForce, LForce):
+    RTurns = []
+    for step in range(len(RForce)-1):
+        if LForce[step] <= RForce[step] and LForce[step + 1] > RForce[step + 1]:
+            RTurns.append(step)
+    return RTurns
+
+def findLeftTurns(RForce, LForce):
+    LTurns = []
+    for step in range(len(RForce)-1):
+        if RForce[step] <= LForce[step] and RForce[step + 1] > LForce[step + 1]:
+            LTurns.append(step)
+    return LTurns
 
 def makeTurnPlot(RF,RL,RM,RH,LF,LL,LM,LH):
     """
@@ -46,25 +61,37 @@ def makeTurnPlot(RF,RL,RM,RH,LF,LL,LM,LH):
 # only read .asc files for this work
 #fPath = 'C:\\Users\\daniel.feeney\\iCloudDrive\\iCloud~de~novel~loadsols\\SkiTesting\\'
 ## Example data lives in there and work well ## 
-fPath = 'C:\\Users\\daniel.feeney\\Boa Technology Inc\\PFL - General\\Snow Performance\\Alpine_V1vsV2_Internal_Feb2022\\ForceData\\'
-entries = os.listdir(fPath)
+fPath = 'C:/Users/kate.harrison/Boa Technology Inc/PFL - Documents/General/Testing Segments/Snow Performance/Alpine_CuffOnSnow_Apr2022/XSENSORdata/'
+entries = askopenfilenames(initialdir = fPath)
 
+OutsideFootForce = []
+OutsideFootMedialForce = []
+avgOutsideHeelStart = []
+propHeelLate = []
+absPropHeelLate = []
+cvForce = []
+lTurn = []
+sName = []
+cName = []
 
-for file in entries:
+for fName in entries:
     try:
-        fName = file
-        dat = pd.read_csv(fPath+fName, sep = '	',skiprows = 3, header = 0, index_col = False)
+        #fName = entries[2]
+        dat = pd.read_csv(fName, sep = '	',skiprows = 3, header = 0, index_col = False)
         dat.columns = ['Time', 'LHeel', 'LMedial','LLateral','LTotal', 'Time2', 
                        'RLateral','RMedial','RHeel','RTotal', 'time2','accX','axxY','accZ','pass']
         
         #dat.columns = ['Time','RHeel','RLateral','RMedial','RTotal','Time2','se','ei','ni','te']
         #use above if one side only
+        info = fName.split(sep = "/")[-1]
         
-        subName = fName.split(sep = "_")[0]
-        configName = fName.split(sep = "_")[1]
+        subName = info.split(sep = "_")[0]
+        configName = info.split(sep = "_")[1]
         
         dat['LToes'] = dat.LMedial + dat.LLateral
         dat['RToes'] = dat.RMedial + dat.RLateral
+        
+        
         
         ### Subset the trial to a portion that does not include standing ###
         fig, ax = plt.subplots()
@@ -77,149 +104,164 @@ for file in entries:
         # downselect the region of the dataframe you selected from above 
         dat = dat.iloc[int(np.floor(pts[0,0])) : int(np.floor(pts[1,0])),:]
         dat = dat.reset_index()
-
-        #### Working on peak and turn initiation detection algorithm here ####
-        ### This will work on the right side initially and abstract to the left ## 
-        plt.plot(dat.RTotal)
-        print('Select threshold force where peak forces will be above')
-        fThresh = np.asarray(plt.ginput(1, timeout=-1))[0][1]
-        plt.close()
-        # select minimal force for turn initiation #
-        plt.plot(dat.RTotal)
-        print('Select threshold force where min forces will be BELOW')
-        minForce = np.asarray(plt.ginput(1, timeout=-1))[0][1]
-        plt.close()
         
-        peaks, _ = find_peaks(dat.RTotal, height = fThresh, prominence= 100, distance = 100)      # prominance is min height to descend from summit to get to any higher terrain
-        # #Visualization to check peaks
-        # x = dat['RTotal']
-        # plt.plot(x)
-        # for xc in peaks:
-        #     plt.axvline(x=xc, color = 'red')
+        fs = 100 
+        fc = 2
+        w = fc / (fs / 2)
+        b, a = signal.butter(4, w, 'low')
+        dat['LTotal_Filt'] = signal.filtfilt(b, a, dat.LTotal)
+        dat['RTotal_Filt'] = signal.filtfilt(b, a, dat.RTotal)
+        dat['RMedial_Filt'] = signal.filtfilt(b, a, dat.RMedial)
+        dat['RLateral_Filt'] = signal.filtfilt(b, a, dat.RLateral)
+        dat['LMedial_Filt'] = signal.filtfilt(b, a, dat.LMedial)
+        dat['LLateral_Filt'] = signal.filtfilt(b, a, dat.LLateral)
+        dat['LHeel_Filt'] = signal.filtfilt(b, a, dat.LHeel)
+        dat['RHeel_Filt'] = signal.filtfilt(b, a, dat.RHeel)
         
-        ## Left turns with greatest force on right side (right is outside ski) ## 
-        lPks = []
-        lPkLatEarly = []
-        lPkMedEarly = []
-        avgHeelStart = []
-        pkHeelLate = []
-        pkMedInsideLate = []
-        cvForce = []
-        lTurn = []
-        sName = []
-        cName = []
-        for turn in peaks[1:len(peaks)]:
-            # subset the force signal, flip np array and find first index below threshold (turnStart)
-            tmpForce = np.array(dat.RTotal[turn-150:turn])
-            tmpForceRev = np.flip(tmpForce)
-            try:
-                turnStart = turn - next(x for x, val in enumerate(tmpForceRev) if val < minForce) # first index > minForce  
-                tmpForce2 = dat.RTotal[turn:turn+100]
-                turnEnd = turn + next(x for x, val in enumerate(tmpForce2) if val < minForce)
-                ### define indices for each turn from 0 ##
-                ts = 0
-                te = turnEnd - turnStart
-                tp = turn - turnStart
-                
-                tmpRF = np.array( dat.RTotal[turnStart:turnEnd] )
-                tmpRL = np.array( dat.RLateral[turnStart:turnEnd] )
-                tmpRM = np.array( dat.RMedial[turnStart:turnEnd] )
-                tmpRH = np.array( dat.RHeel[turnStart:turnEnd] )
-                tmpLF = np.array( dat.LTotal[turnStart:turnEnd] )
-                tmpLL = np.array( dat.LLateral[turnStart:turnEnd] )
-                tmpLM = np.array( dat.LMedial[turnStart:turnEnd] )
-                tmpLH = np.array( dat.LHeel[turnStart:turnEnd]  )
-                #makeTurnPlot(tmpRF, tmpRL, tmpRM, tmpRH, tmpLF, tmpLL, tmpLM, tmpLH)
-                
-                ## Extract relevent parameters from a turn here ##
-                lPks.append( np.max(tmpRF) ) #peak force
-                lPkLatEarly.append( np.max(tmpRL[ts:tp]) )
-                lPkMedEarly.append( np.max(tmpRM[ts:tp]) )
-                avgHeelStart.append( np.mean(tmpRH[ts:tp]) )
-                pkHeelLate.append( np.max(tmpRH[tp:te]) )
-                pkMedInsideLate.append( np.max(tmpLM[tp:te]) )
-                cvForce.append( (np.std(tmpRF[tp-20:tp+20]) / np.mean(tmpRF[tp-20:tp+20])) * 100 )
-                lTurn.append('left')
-                sName.append(subName)
-                cName.append(configName)
-            except:
-                print('never reached min force turn ' + str(turn))
+        
+        
+        # plt.figure()
+        # plt.plot(dat.RTotal_Filt, label = "Right Foot")
+        # plt.plot(dat.LTotal_Filt, label = "Left Foot")
+        # plt.legend()
+        
+        # plt.figure()
+        # plt.plot(dat.LMedial_Filt, label = "Left Medial")
+        # plt.plot(dat.LLateral_Filt, label = "Left Lateral")
+        # plt.plot(dat.LHeel_Filt, label = "Left Heel")
+        # plt.legend()
+        
+        plt.figure()
+        #plt.plot(dat.RTotal_Filt, label = "Right Total")
+        plt.plot(dat.RMedial_Filt, label = "Right Medial")
+        plt.plot(dat.RLateral_Filt, label = "Right Lateral")
+        plt.plot(dat.RHeel_Filt, label = "Right Heel")
+        plt.legend()
+        plt.title(info)
+       
+        RTurns = findRightTurns(dat.RTotal_Filt, dat.LTotal_Filt)
+        LTurns = findLeftTurns(dat.RTotal_Filt, dat.LTotal_Filt)
+        
+        RTurns[:] = [x for x in RTurns if x > LTurns[0]] # we want first right turn after first left turn
+        LTurns[:] = [x for x in LTurns if x < RTurns[-1]] # we want to end with a Right Turn 
+        
+        
+        
+        for i in range(len(LTurns)):
             
-        outcomes = pd.DataFrame({'Subject':list(sName),'Config':list(cName),'TurnType': list(lTurn),'PeakForce':list(lPks),
-                                 'PkLatForceEarly':list(lPkLatEarly), 'PkMedForceEarly':list(lPkMedEarly),
-                                 'PkHeelLate':list(pkHeelLate),'pkMedInsideLate':list(pkMedInsideLate),
-                                 'CVForce':list(cvForce)})
+            #i = 0
+            turnTime = RTurns[i]-LTurns[i]
+            
+            
+            if turnTime > 100:
+            
+                try:
+                    
+                    pkIdx = np.argmax(dat.RTotal_Filt[LTurns[i]:RTurns[i]])
+                    
+                    ## Extract relevent parameters from a turn here ##
+                    OutsideFootForce.append( dat.RTotal_Filt[LTurns[i]+pkIdx]/(dat.LTotal_Filt[LTurns[i] + pkIdx] + dat.RTotal_Filt[LTurns[i] + pkIdx]) )#proportion of force on outside foot
+                    #LPeakLatProp.append( np.max(dat.LLateral_Filt[RTurns[i]:RTurns[i] + pkIdx]) ) # FOOT ROLL. Lower is better? proportion of force on outside lateral foot 
+                    OutsideFootMedialForce.append( dat.RMedial_Filt[LTurns[i] + pkIdx]/dat.RTotal_Filt[LTurns[i] + pkIdx] ) # FOOT ROLL. Higher is better? proportion of force on outside medial 
+                    avgOutsideHeelStart.append( np.mean(dat.RHeel_Filt[LTurns[i]:LTurns[i] + pkIdx])/np.mean(dat.RTotal_Filt[LTurns[i]:LTurns[i] + pkIdx] )) # FORWARD STANCE. Lower is better? proportion of heel force during early turn
+                    
+                    tmpHeel = dat["RHeel_Filt"].tolist()
+                    tmpToes = dat.RMedial_Filt + dat.RLateral_Filt
+                    tmpToes = tmpToes.tolist()
+                    
+                    pkOutsideHeelLate = np.max(dat.RHeel_Filt[LTurns[i] + pkIdx: RTurns[i]])
+                    pkOutsideHeelLateIdx = tmpHeel.index(pkOutsideHeelLate) # BALANCE? Peak heel force late in turn. Weight should shift from toe towards heel late in turn - closer to 50% is better? 
+                    propHeelLate.append(( pkOutsideHeelLate - tmpToes[pkOutsideHeelLateIdx])/dat.RTotal_Filt[pkOutsideHeelLateIdx])
+                    absPropHeelLate.append(abs(propHeelLate[-1]))
+                    lTurn.append('Left') 
+                    sName.append(subName)
+                    cName.append(configName)
+                except:
+                    print(fName + str(i))
+            
+    except:
+        print(fName + "WHOLE TRIAL SUCKS")
+
+outcomes = pd.DataFrame({'Subject':list(sName),'Config':list(cName),'TurnType': list(lTurn),
+                                 'OutsideFootForce':list(OutsideFootForce), 'OutsideFootMedialForce':list(OutsideFootMedialForce),'avgOutsideHeelStart':list(avgOutsideHeelStart),
+                                 'propHeelLate':list(propHeelLate), 'absPropHeelLate':list(absPropHeelLate)
+                                 })
          
         
+outfileName = fPath + 'CompiledResults2.csv'
+
+if os.path.exists(outfileName) == False:
+    
+    outcomes.to_csv(outfileName, mode='a', header=True, index = False)
+
+else:
+    outcomes.to_csv(outfileName, mode='a', header=False, index = False)        
+    #     ## Right Turns with greater force on left side ##
+    #     leftPeaks, _ = signal.find_peaks(dat.LTotal, height = fThresh, prominence= 100, distance = 100)      # prominance is min height to descend from summit to get to any higher terrain
+    #     # #Visualization to check peaks
+    #     # x = dat['LTotal']
+    #     # plt.plot(x)
+    #     # for xc in leftPeaks:
+    #     #     plt.axvline(x=xc, color = 'red')
         
-        ## Right Turns with greater force on left side ##
-        leftPeaks, _ = find_peaks(dat.LTotal, height = fThresh, prominence= 100, distance = 100)      # prominance is min height to descend from summit to get to any higher terrain
-        # #Visualization to check peaks
-        # x = dat['LTotal']
-        # plt.plot(x)
-        # for xc in leftPeaks:
-        #     plt.axvline(x=xc, color = 'red')
-        
-        rPks = []
-        rPkLatEarly = []
-        rPkMedEarly = []
-        ravgHeelStart = []
-        rpkHeelLate = []
-        rpkMedInsideLate = []
-        rcvForce = []
-        rTurn = []
-        sName2 = []
-        cName2 = []
-        for turn in leftPeaks[1:len(leftPeaks)]:
-            # subset the force signal, flip np array and find first index below threshold (turnStart)
-            tmpForce = np.array(dat.LTotal[turn-80:turn])
-            tmpForceRev = np.flip(tmpForce)
-            try:
-                turnStart = turn - next(x for x, val in enumerate(tmpForceRev) if val < minForce) # first index > minForce  
+    #     rPks = []
+    #     rPkLatEarly = []
+    #     rPkMedEarly = []
+    #     ravgHeelStart = []
+    #     rpkHeelLate = []
+    #     rpkMedInsideLate = []
+    #     rcvForce = []
+    #     rTurn = []
+    #     sName2 = []
+    #     cName2 = []
+    #     for turn in leftPeaks[1:len(leftPeaks)]:
+    #         # subset the force signal, flip np array and find first index below threshold (turnStart)
+    #         tmpForce = np.array(dat.LTotal[turn-80:turn])
+    #         tmpForceRev = np.flip(tmpForce)
+    #         try:
+    #             turnStart = turn - next(x for x, val in enumerate(tmpForceRev) if val < minForce) # first index > minForce  
                  
-                tmpForce2 = dat.LTotal[turn:turn+100]
-                turnEnd = turn + next(x for x, val in enumerate(tmpForce2) if val < minForce)
-                turnLen = turnEnd - turnStart
-                if turnLen < 50:
-                    continue
+    #             tmpForce2 = dat.LTotal[turn:turn+100]
+    #             turnEnd = turn + next(x for x, val in enumerate(tmpForce2) if val < minForce)
+    #             turnLen = turnEnd - turnStart
+    #             if turnLen < 50:
+    #                 continue
                 
-                ts = 0
-                te = turnEnd - turnStart
-                tp = turn - turnStart
+    #             ts = 0
+    #             te = turnEnd - turnStart
+    #             tp = turn - turnStart
                             
-                tmpRF = np.array( dat.RTotal[turnStart:turnEnd] )
-                tmpRL = np.array( dat.RLateral[turnStart:turnEnd] )
-                tmpRM = np.array( dat.RMedial[turnStart:turnEnd] )
-                tmpRH = np.array( dat.RHeel[turnStart:turnEnd] )
-                tmpLF = np.array( dat.LTotal[turnStart:turnEnd] )
-                tmpLL = np.array( dat.LLateral[turnStart:turnEnd] )
-                tmpLM = np.array( dat.LMedial[turnStart:turnEnd] )
-                tmpLH = np.array( dat.LHeel[turnStart:turnEnd] )
-                #makeTurnPlot(tmpRF, tmpRL, tmpRM, tmpRH, tmpLF, tmpLL, tmpLM, tmpLH)
+    #             tmpRF = np.array( dat.RTotal[turnStart:turnEnd] )
+    #             tmpRL = np.array( dat.RLateral[turnStart:turnEnd] )
+    #             tmpRM = np.array( dat.RMedial[turnStart:turnEnd] )
+    #             tmpRH = np.array( dat.RHeel[turnStart:turnEnd] )
+    #             tmpLF = np.array( dat.LTotal[turnStart:turnEnd] )
+    #             tmpLL = np.array( dat.LLateral[turnStart:turnEnd] )
+    #             tmpLM = np.array( dat.LMedial[turnStart:turnEnd] )
+    #             tmpLH = np.array( dat.LHeel[turnStart:turnEnd] )
+    #             #makeTurnPlot(tmpRF, tmpRL, tmpRM, tmpRH, tmpLF, tmpLL, tmpLM, tmpLH)
                 
-                rPks.append( np.max(tmpLF) ) #peak force
-                rPkLatEarly.append( np.max(tmpLL[ts:tp]) )
-                rPkMedEarly.append( np.max(tmpLM[ts:tp]) )
-                ravgHeelStart.append( np.mean(tmpLH[ts:tp]) )
-                rpkHeelLate.append( np.max(tmpLH[tp:te]) )
-                rpkMedInsideLate.append( np.max(tmpRM[tp:te]) )
-                rcvForce.append( (np.std(tmpLF[tp-20:tp+20]) / np.mean(tmpLF[tp-20:tp+20])) * 100 )
-                rTurn.append('Right')
-                sName2.append(subName)
-                cName2.append(configName)
-            except:
-                print('never reached min force turn ' + str(turn))
-        ### end of turn detection algorithm ###
+    #             rPks.append( np.max(tmpLF) ) #peak force
+    #             rPkLatEarly.append( np.max(tmpLL[ts:tp]) )
+    #             rPkMedEarly.append( np.max(tmpLM[ts:tp]) )
+    #             ravgHeelStart.append( np.mean(tmpLH[ts:tp]) )
+    #             rpkHeelLate.append( np.max(tmpLH[tp:te]) )
+    #             rpkMedInsideLate.append( np.max(tmpRM[tp:te]) )
+    #             rcvForce.append( (np.std(tmpLF[tp-20:tp+20]) / np.mean(tmpLF[tp-20:tp+20])) * 100 )
+    #             rTurn.append('Right')
+    #             sName2.append(subName)
+    #             cName2.append(configName)
+    #         except:
+    #             print('never reached min force turn ' + str(turn))
+    #     ### end of turn detection algorithm ###
         
-        outcomesRight = pd.DataFrame({'Subject':list(sName2),'Config':list(cName2),'TurnType': list(rTurn),'PeakForce':list(rPks),
-                         'PkLatForceEarly':list(rPkLatEarly), 'PkMedForceEarly':list(rPkMedEarly),
-                         'PkHeelLate':list(rpkHeelLate),'pkMedInsideLate':list(rpkMedInsideLate),
-                         'CVForce':list(rcvForce)})
+    #     outcomesRight = pd.DataFrame({'Subject':list(sName2),'Config':list(cName2),'TurnType': list(rTurn),'PeakForce':list(rPks),
+    #                      'PkLatForceEarly':list(rPkLatEarly), 'PkMedForceEarly':list(rPkMedEarly),
+    #                      'PkHeelLate':list(rpkHeelLate),'pkMedInsideLate':list(rpkMedInsideLate),
+    #                      'CVForce':list(rcvForce)})
 
-        totalOutput = pd.concat( [outcomes, outcomesRight] )
-        totalOutput.to_csv('C:\\Users\\daniel.feeney\\Boa Technology Inc\\PFL - General\\Snow Performance\\Alpine_V1vsV2_Internal_Feb2022\\testresults.csv', mode='a', header=False)
+    #     totalOutput = pd.concat( [outcomes, outcomesRight] )
+    #     totalOutput.to_csv('C:\\Users\\daniel.feeney\\Boa Technology Inc\\PFL - General\\Snow Performance\\Alpine_V1vsV2_Internal_Feb2022\\testresults.csv', mode='a', header=False)
 
-    except:
-        print(file)
-     
-  
+    # except:
+    #     print(file)
