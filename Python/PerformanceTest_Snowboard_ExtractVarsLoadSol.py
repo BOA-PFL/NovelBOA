@@ -14,6 +14,23 @@ from tkinter.filedialog import askopenfilenames
 
 
 def findToeTurns(toeForce, heelForce):
+    """
+    This function finds the frames where toe turns begin in snowboarding, which is assumed to be at the
+    point where force under the toes exceeds force under the heel.
+    
+    Parameters
+    ----------
+    toeForce : numpy array
+        Time series of force data under the toes measured from insoles
+    heelForce : numpy array
+        Time sereis of force data under the heel measured from insoles
+
+    Returns
+    -------
+    toeTurns : numpy array
+        Index of frames in where toe turns started 
+
+    """
     toeTurns = []
     for step in range(len(toeForce)-1):
         if toeForce[step] <= heelForce[step] and toeForce[step + 1] > heelForce[step + 1]:
@@ -22,6 +39,23 @@ def findToeTurns(toeForce, heelForce):
 
 #Find takeoff from FP when force goes from above thresh to 0
 def findHeelTurns(toeForce, heelForce):
+    """
+    This function finds the frames where heel turns begin in snowboarding, which is assumed to be at the
+    point where force under the heels exceeds force under the toes.
+
+    Parameters
+    ----------
+    toeForce : numpy array
+        Time series of force data under the toes measured from insoles
+    heelForce : numpy array
+        Time sereis of force data under the heel measured from insoles
+
+    Returns
+    -------
+    heelTurns : numpy array
+        Index of frames in where heel turns started
+
+    """
     heelTurns = []
     for step in range(len(toeForce)-1):
         if heelForce[step] <= toeForce[step] and heelForce[step + 1] > toeForce [step + 1]:
@@ -30,14 +64,14 @@ def findHeelTurns(toeForce, heelForce):
 
 
 # Read in files
-# only read .asc files for this work
+
 fPath = 'C:/Users/kate.harrison/Boa Technology Inc/PFL - Documents/General/Segments/Snow Performance/SB_2DialTakeDown_Mar2022/Forces/'
 
 # entries = os.listdir(fPath)
 # Select files for a single subject
 entries = askopenfilenames(initialdir = fPath)
 
-### Time Series
+### Initiate Time Series
 
 toeTurns_FrontHeel = []
 toeTurns_FrontToes = []
@@ -48,7 +82,7 @@ heelTurns_FrontToes = []
 heelTurns_RearHeel = []
 heelTurns_RearToes = []
 
-### Toe Turns
+### Initiate discrete metrics
 maxToeF_BothToes = []
 maxTotalF_BothToes = []
 maxToeRFDup_BothToes = []
@@ -72,6 +106,8 @@ Config = []
 Trial = []
 
 for fName in entries:
+    
+    ### Loop through each file, use time series of force data to identify turns.
     try:
         #fName = entries[0] 
         dat = pd.read_csv(fName,sep='\t', skiprows = 4, header = None, index_col = False, usecols = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
@@ -92,13 +128,14 @@ for fName in entries:
         dat['bothToes'] = dat.FrontToes + dat.RearToes
         dat['bothHeels'] = dat.FrontHeel + dat.RearHeel
         fig, ax = plt.subplots()
+        
+        # Select the period you want to pull data from (i.e. when they were riding)
         ax.plot(dat.FrontTotal, label = 'Front Total Force')
         ax.plot(dat.RearTotal, label = 'Rear Total Force')
         fig.legend()
         print('Select start and end of analysis trial')
         pts = np.asarray(plt.ginput(2, timeout=-1))
         plt.close()
-        # downselect the region of the dataframe you'd like
         dat = dat.iloc[int(np.floor(pts[0,0])) : int(np.floor(pts[1,0])),:]
         
         dat['TotalFront'] = dat.FrontHeel + dat.FrontToes
@@ -159,10 +196,10 @@ for fName in entries:
         realToeStart[:] = [x for x in realToeStart if x < realHeelStart[-1]] # we want to end on a heel turn
         
                   
-        ###### Extract variables from each turn initiation ######
+        
         
         for i in range(len(realToeStart)-1):
-            
+            ### Loop through toe turns to extract variables. Note we are only using turns longer than 1 sec (100 frames)
             #i = 10
             turnTime = realHeelStart[i] - realToeStart[i] 
             
@@ -239,6 +276,8 @@ for fName in entries:
         print(fName)
      
 
+# Create dataframe with all outcome variables and write to csv. Will create a new csv if one doesn't already 
+# exist for this data set. Otherwise will append.
 outcomes = pd.DataFrame({'Subject':list(Subject), 'Config': list(Config), 'Trial':list(Trial),
                          
                          'MaxToeF_BothToes':list(maxToeF_BothToes), 'MaxTotalF_BothToes':list(maxTotalF_BothToes),
@@ -260,7 +299,7 @@ else:
 
 
 
-### Plotting time series
+### Plotting time series. NOT FINISHED. Not needed for performance tests.
 
 configs = np.unique(Config)
 toeTurn_FrontHeel = np.stack(toeTurns_FrontHeel)
