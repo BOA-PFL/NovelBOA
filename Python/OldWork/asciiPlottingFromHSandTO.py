@@ -15,7 +15,7 @@ import seaborn as sns
 from scipy.signal import find_peaks
 
 
-fPath = 'C:/Users/kate.harrison/Dropbox (Boa)/AgilityPerformance/BOA_mechanisticStudy/CMJ_ASCII/Max/'
+fPath = 'C:/Users/kate.harrison/Dropbox (Boa)/EndurancePerformance/TNF_Scrambler_Apr_21/Novel_Data/Running/BOA/'
 fileExt = r".asc"
 entries = [fName for fName in os.listdir(fPath) if fName.endswith(fileExt)]
 
@@ -78,7 +78,7 @@ for fName in entries:
     forceTot = dat['forceTot']
 
     #find the peaks and offs of the FP as vectors
-    peaks, _ = find_peaks(forceTot, height=fThresh)
+    #peaks, _ = find_peaks(forceTot, height=fThresh)
 
     plt.plot(dat.forceTot)
 
@@ -113,14 +113,14 @@ for fName in entries:
         toindex = landings[step] + round((takeoffs[step] - landings[step])*0.9)
         mdindex = round(hsindex + (toindex - hsindex)/2)
         HSarray.append(list(dat.iloc[hsindex,99:198]))
+    
         HSdorsal.append(list(dat.iloc[hsindex,1:100]))
         MSarray.append(list(dat.iloc[mdindex,99:198]))
         MSdorsal.append(list(dat.iloc[mdindex,1:100]))
         TOarray.append(list(dat.iloc[toindex,99:198]))
         TOdorsal.append(list(dat.iloc[toindex,1:100]))
     
-    HSarray.append(list(dat.iloc[hsindex,99:198]))
-
+    
 
 noRows = len(HSarray)
 noCols = 99    
