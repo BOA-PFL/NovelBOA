@@ -1,8 +1,12 @@
-# -*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-3
 """
 Created on Wed Dec 16 16:19:30 2020
 When you have both sides of data from loadsol
-@author: Daniel.Feeney
+
+Note: 'left turns' means skier is turning to the left but more force should
+be on the downhill (or right) ski. 
+'right turns' means skier is turning to the right but more force should be on 
+the downhill (or left) ski.  - DF
 
 
 """
@@ -13,80 +17,103 @@ import matplotlib.pyplot as plt
 import os
 from scipy import signal
 from tkinter.filedialog import askopenfilenames
+from tkinter import messagebox
+
 
 def findRightTurns(RForce, LForce):
     """
-    Find start of right turns. Defined as when force on LEFT ski (i.e. downhill ski) exceeds force on right ski.
+    Find start of right turns. Defined as when force on LEFT ski (i.e. downhill ski) 
+    exceeds force on right ski.
 
     Parameters
     ----------
-    RForce : numpy array
+    RForce : Pandas Column
         Time series of force data under right foot.
-    LForce : numpy array
+    LForce : Pandas Column
         Time series of force data under left foot. 
 
     Returns
     -------
-    RTurns : numpy array
+    RTurns : List
         Index of frames where right turns started. 
 
     """
     RTurns = []
     for step in range(len(RForce)-1):
-        if LForce[step] <= RForce[step] and LForce[step + 1] > RForce[step + 1]:
+        if LForce[step] <= RForce[step] and LForce[step + 1] > RForce[step + 1] and np.mean(LForce[step:step+200] > np.mean(RForce[step:step+200])):
             RTurns.append(step)
     return RTurns
 
 def findLeftTurns(RForce, LForce):
     """
-    Find start of left turns. Defined as when force on RIGHT ski (i.e. downhill ski) exceeds for on the left ski.
+    Find start of left turns. Defined as when force on RIGHT ski 
+    (i.e. downhill ski) exceeds for on the left ski.
 
     Parameters
     ----------
-    RForce : numpy array
+    RForce : Pandas Column
         Time series of force data under the right foot. 
-    LForce : numpy array
+    LForce : Pandas Column
         Time series of force data under the left foot. 
 
     Returns
     -------
-    LTurns : numpy array
+    LTurns : list
         Index of frames where left turns started. 
 
     """
     LTurns = []
     for step in range(len(RForce)-1):
-        if RForce[step] <= LForce[step] and RForce[step + 1] > LForce[step + 1]:
+        if RForce[step] <= LForce[step] and RForce[step + 1] > LForce[step + 1] and np.mean(RForce[step:step+200]) > np.mean(LForce[step:step+200]) :
             LTurns.append(step)
     return LTurns
 
-def makeTurnPlot(RF,RL,RM,RH,LF,LL,LM,LH):
+
+
+def cleanTurns(turnIndices):
     """
-    Function takes in time series of force under the  left and right sides
-    and plots them for each turn using equal height y-axes.
-    Used primarily when creating the functions but is mostly turned off for 
-    processing. 
+    Finds if there are two turn initiations from the same foot close together
+    and removes the first one
     """
-    fig, (ax1, ax2) = plt.subplots(1,2)
-    ax1.plot(RF, color = 'r', label = 'Right Force')
-    ax1.plot(RL, color = 'k', label = 'Right Lateral')
-    ax1.plot(RM, color = 'b', label = 'Right Medial')
-    ax1.plot(RH, color = 'g', label = 'Right Heel')
-    ax1.set_ylim([0,800])
-    ax1.legend()
-    ax2.plot(LF, color = 'r', label = 'Left Force')
-    ax2.plot(LL, color = 'k', label = 'Left Lateral')
-    ax2.plot(LM, color = 'b', label = 'Left Medial')
-    ax2.plot(LH, color = 'g', label = 'Left Heel')
-    ax2.set_ylim([0,800])
-    ax2.legend()
+    lowThreshold = np.median(np.diff(turnIndices)) * 0.5
+    trueIndices = [idx for idx, x in enumerate(list(np.diff(turnIndices))) if x < lowThreshold]
     
-# Read in files
-#fPath = 'C:\\Users\\daniel.feeney\\iCloudDrive\\iCloud~de~novel~loadsols\\SkiTesting\\'
+    cleanList = [x for idx, x in enumerate(turnIndices) if idx not in trueIndices]
+    
+    return(cleanList)
+
+
+def makeTurnPlot(inputDF, turnIndices, turnSide):
+    """
+    Parameters
+    ----------
+    inputDF : Pandas df
+        Loadsol Export with low-pass filtered force data
+    turnIndices : List
+        Indices of turns.
+    turnSide : String
+        Left or Right.
+
+    Returns
+    -------
+    Plot
+
+    """
+    plt.figure()
+    plt.plot(inputDF.RTotal_Filt, label = "Right Foot")
+    plt.plot(inputDF.LTotal_Filt, label = "Left Foot")
+    plt.vlines(x = turnIndices, ymin = 0, ymax = np.max(600),
+              color = 'k', label = turnSide, linewidth=3.0, ls='--')
+    plt.legend()
+    plt.title(turnSide)
+
+#makeTurnPlot(dat, RTurns, 'Right')
 ## Example data lives in there and work well ## 
 
-fPath = 'C:/Users/kate.harrison/Boa Technology Inc/PFL - Documents/General/Testing Segments/Snow Performance/Alpine_CuffOnSnow_Apr2022/XSENSORdata/'
-entries = askopenfilenames(initialdir = fPath)
+fPath = 'C:\\Users\\daniel.feeney\\Boa Technology Inc\\PFL Team - General\\Testing Segments\\Snow Performance\\Alpine_CuffOnSnow_Apr2022\\XSENSORdata\\'
+fileExt = r".txt"
+entries = [fName for fName in os.listdir(fPath) if fName.endswith(fileExt)]
+#entries = askopenfilenames(initialdir = fPath)
 
 # Initiate discrete outcome variables
 OutsideFootForce = []
@@ -98,12 +125,13 @@ cvForce = []
 lTurn = []
 sName = []
 cName = []
+badFileList = []
 
 for fName in entries:
     try:
         # Loop through files and use time series force data to identify turns
         #fName = entries[2]
-        dat = pd.read_csv(fName, sep = '	',skiprows = 3, header = 0, index_col = False)
+        dat = pd.read_csv(fPath+fName, sep = '	',skiprows = 3, header = 0, index_col = False)
         dat.columns = ['Time', 'LHeel', 'LMedial','LLateral','LTotal', 'Time2', 
                        'RLateral','RMedial','RHeel','RTotal', 'time2','accX','axxY','accZ','pass']
         
@@ -144,68 +172,65 @@ for fName in entries:
         dat['LHeel_Filt'] = signal.filtfilt(b, a, dat.LHeel)
         dat['RHeel_Filt'] = signal.filtfilt(b, a, dat.RHeel)
         
-        
-        
-        # plt.figure()
-        # plt.plot(dat.RTotal_Filt, label = "Right Foot")
-        # plt.plot(dat.LTotal_Filt, label = "Left Foot")
-        # plt.legend()
-        
-        # plt.figure()
-        # plt.plot(dat.LMedial_Filt, label = "Left Medial")
-        # plt.plot(dat.LLateral_Filt, label = "Left Lateral")
-        # plt.plot(dat.LHeel_Filt, label = "Left Heel")
-        # plt.legend()
-        
-        plt.figure()
-        #plt.plot(dat.RTotal_Filt, label = "Right Total")
-        plt.plot(dat.RMedial_Filt, label = "Right Medial")
-        plt.plot(dat.RLateral_Filt, label = "Right Lateral")
-        plt.plot(dat.RHeel_Filt, label = "Right Heel")
-        plt.legend()
-        plt.title(info)
        
         RTurns = findRightTurns(dat.RTotal_Filt, dat.LTotal_Filt)
         LTurns = findLeftTurns(dat.RTotal_Filt, dat.LTotal_Filt)
+
+        RTurns = cleanTurns(RTurns)
+        LTurns = cleanTurns(LTurns)
         
-        RTurns[:] = [x for x in RTurns if x > LTurns[0]] # we want first right turn after first left turn
-        LTurns[:] = [x for x in LTurns if x < RTurns[-1]] # we want to end with a Right Turn 
+        makeTurnPlot(dat, LTurns, 'Left Turns')
+        answer = messagebox.askyesno("Question","Is data clean?")
+        
+        if answer == False:
+            plt.close('all')
+            print('Adding file to bad file list')
+            badFileList.append(fName)
+        
+        if answer == True:
+            plt.close('all')
+            print('Estimating point estimates')
         
         
-        
-        for i in range(len(LTurns)):
-            # Loop through all turns in teh file to calculate discrete outcome measures.
-            #i = 0
-            turnTime = RTurns[i]-LTurns[i]
-            
-            
-            if turnTime > 100:
-            
+            for i, value in enumerate(LTurns):
+                # Loop through all cleaned turns to calculate discrete outcome measures.
+                # using right side only (left turns). No longer assuming left to right
+                # transitions are constant and only using data from one side. 
+                # Could port this to do R Turns as well. 
+    
                 try:
                     
-                    pkIdx = np.argmax(dat.RTotal_Filt[LTurns[i]:RTurns[i]])
+                    pkIdx = np.argmax(dat.RTotal_Filt[LTurns[i]:LTurns[i+1]])
+                    pkIdx = value + pkIdx
                     
                     ## Extract relevent parameters from a turn here ##
-                    OutsideFootForce.append( dat.RTotal_Filt[LTurns[i]+pkIdx]/(dat.LTotal_Filt[LTurns[i] + pkIdx] + dat.RTotal_Filt[LTurns[i] + pkIdx]) )#proportion of force on downhill foot
-                    OutsideFootMedialForce.append( dat.RMedial_Filt[LTurns[i] + pkIdx]/dat.RTotal_Filt[LTurns[i] + pkIdx] ) # FOOT ROLL. Proportion of force on outside medial 
-                    avgOutsideHeelStart.append( np.mean(dat.RHeel_Filt[LTurns[i]:LTurns[i] + pkIdx])/np.mean(dat.RTotal_Filt[LTurns[i]:LTurns[i] + pkIdx] )) # FORWARD STANCE. Proportion of heel force during early turn
+                    # EARLY TURN DH FORCE: Proportion of force on downhill foot. Higher is better
+                    OutsideFootForce.append( dat.RTotal_Filt[pkIdx]/(dat.LTotal_Filt[pkIdx] + dat.RTotal_Filt[pkIdx]) )
+                    # FOOT ROLL. Proportion of force on outside medial 
+                    OutsideFootMedialForce.append( dat.RMedial_Filt[pkIdx]/dat.RTotal_Filt[pkIdx] ) 
+                    # FORWARD STANCE. Proportion of heel force during early turn
+                    avgOutsideHeelStart.append( np.mean(dat.RHeel_Filt[value:pkIdx])/np.mean(dat.RTotal_Filt[value:pkIdx] )) 
                     
                     tmpHeel = dat["RHeel_Filt"].tolist()
                     tmpToes = dat.RMedial_Filt + dat.RLateral_Filt
                     tmpToes = tmpToes.tolist()
                     
-                    pkOutsideHeelLate = np.max(dat.RHeel_Filt[LTurns[i] + pkIdx: RTurns[i]])
+                    pkOutsideHeelLate = np.max(dat.RHeel_Filt[pkIdx: LTurns[i+1]])
                     pkOutsideHeelLateIdx = tmpHeel.index(pkOutsideHeelLate) 
                     propHeelLate.append(( pkOutsideHeelLate - tmpToes[pkOutsideHeelLateIdx])/dat.RTotal_Filt[pkOutsideHeelLateIdx])
-                    absPropHeelLate.append(abs(propHeelLate[-1])) # BALANCE - proportion of force on heel vs. toes late in turn (50% is ideal)
+                    # BALANCE - proportion of force on heel vs. toes late in turn (50% is ideal)
+                    absPropHeelLate.append(abs(propHeelLate[-1])) 
                     lTurn.append('Left') 
                     sName.append(subName)
                     cName.append(configName)
+                    
                 except:
                     print(fName + str(i))
             
+            #makeTurnPlot(dat, RTurns, 'Right Turns')
+            
     except:
-        print(fName + "WHOLE TRIAL SUCKS")
+        print(fName)
 
 
 # Create data frame with all outcome measures and export to csv. Will create a new csv if one does not exist for this dataset. 
@@ -216,7 +241,7 @@ outcomes = pd.DataFrame({'Subject':list(sName),'Config':list(cName),'TurnType': 
                                  'propHeelLate':list(propHeelLate), 'absPropHeelLate':list(absPropHeelLate)
                                  })
          
-        
+  
 outfileName = fPath + 'CompiledResults2.csv'
 
 if os.path.exists(outfileName) == False:

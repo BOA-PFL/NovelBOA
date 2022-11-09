@@ -11,29 +11,37 @@ import matplotlib.pyplot as plt
 from scipy import signal
 import os
 from tkinter.filedialog import askopenfilenames
+from tkinter import messagebox
 
+pd.options.mode.chained_assignment = None  # default='warn' set to warn for a lot of warnings
+
+# plt.plot(dat.bothToes_Filt, label = 'toes') 
+# plt.plot(dat.bothHeels_Filt, label = 'heels')
+# plt.legend()
 
 def findToeTurns(toeForce, heelForce):
     """
-    This function finds the frames where toe turns begin in snowboarding, which is assumed to be at the
-    point where force under the toes exceeds force under the heel.
+    This function finds the frames where toe turns begin in snowboarding, 
+    which is assumed to be at the
+    point where force under the toes exceeds force under the heel.The mean of 
+    the following 200 indices for toes must also be greater than heel
     
     Parameters
     ----------
-    toeForce : numpy array
+    toeForce : Pandas column
         Time series of force data under the toes measured from insoles
-    heelForce : numpy array
+    heelForce : Pandas column
         Time sereis of force data under the heel measured from insoles
 
     Returns
     -------
-    toeTurns : numpy array
+    toeTurns : list
         Index of frames in where toe turns started 
 
     """
     toeTurns = []
     for step in range(len(toeForce)-1):
-        if toeForce[step] <= heelForce[step] and toeForce[step + 1] > heelForce[step + 1]:
+        if toeForce[step] <= heelForce[step] and toeForce[step + 1] > heelForce[step + 1] and np.mean(toeForce[step:step+200]) > np.mean(heelForce[step:step+200]):
             toeTurns.append(step)
     return toeTurns
 
@@ -52,24 +60,57 @@ def findHeelTurns(toeForce, heelForce):
 
     Returns
     -------
-    heelTurns : numpy array
+    heelTurns : list
         Index of frames in where heel turns started
 
     """
     heelTurns = []
     for step in range(len(toeForce)-1):
-        if heelForce[step] <= toeForce[step] and heelForce[step + 1] > toeForce [step + 1]:
+        if heelForce[step] <= toeForce[step] and heelForce[step + 1] > toeForce [step + 1]and np.mean(heelForce[step:step+200]) > np.mean(toeForce[step:step+200]):
             heelTurns.append(step)
     return heelTurns
 
 
+def cleanTurns(turnIndices):
+    
+    """
+    Finds if there are two turn initiations from the same foot close together
+    and removes the first one. Assumes 0.5* median difference in turn start is
+    enough to differentiate
+    """
+    lowThreshold = np.median(np.diff(turnIndices)) * 0.5
+    trueIndices = [idx for idx, x in enumerate(list(np.diff(turnIndices))) if x < lowThreshold]
+    
+    cleanList = [x for idx, x in enumerate(turnIndices) if idx not in trueIndices]
+    
+    return(cleanList)
+
+def makeVizPlot(inputDF, inputToeTurns, inputHeelTurns):
+    """
+    makes plot to check data
+    """
+    fig, (ax, ax1) = plt.subplots(1,2)
+    ax.plot(inputDF.bothToes_Filt, label = 'Total Toe Force')
+    ax.plot(inputDF.bothHeels_Filt, label = 'Total Heel Force')
+    ax.vlines(x = inputToeTurns, ymin = 0, ymax = 1000,
+      color = 'k', label = 'Toe Turn Start', linewidth=3.0, ls='--')
+    ax.legend() 
+    ax.set_title('Toe Turns')
+    ax1.plot(inputDF.bothToes_Filt, label = 'Front Toe Force')
+    ax1.plot(inputDF.bothHeels_Filt, label = 'Front Heel Force')
+    ax1.vlines(x = inputHeelTurns, ymin = 0, ymax = 1000,
+      color = 'k', label = 'Heel Turn Start', linewidth=3.0, ls='--')
+    ax1.legend()       
+    ax1.set_title('Heel Turns')
+
 # Read in files
 
-fPath = 'C:/Users/kate.harrison/Boa Technology Inc/PFL - Documents/General/Segments/Snow Performance/SB_2DialTakeDown_Mar2022/Forces/'
-
-# entries = os.listdir(fPath)
+fPath = 'C:\\Users\\daniel.feeney\\Boa Technology Inc\\PFL Team - General\\Testing Segments\\Snow Performance\\SB_2DialTakeDown_Mar2022\\Forces\\'
+fileExt = r".txt"
+entries = [fName for fName in os.listdir(fPath) if fName.endswith(fileExt)]
+entries = os.listdir(fPath)
 # Select files for a single subject
-entries = askopenfilenames(initialdir = fPath)
+#entries = askopenfilenames(initialdir = fPath)
 
 ### Initiate Time Series
 
@@ -99,6 +140,7 @@ peakProminence_FrontToe = []
 noPeaks_RearToe = []
 peakProminence_RearToe = []
 
+badFileList = []
 
 # naming #
 Subject = []
@@ -109,8 +151,8 @@ for fName in entries:
     
     ### Loop through each file, use time series of force data to identify turns.
     try:
-        #fName = entries[0] 
-        dat = pd.read_csv(fName,sep='\t', skiprows = 4, header = None, index_col = False, usecols = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
+        #fName = entries
+        dat = pd.read_csv(fPath + fName,sep='\t', skiprows = 4, header = None, index_col = False, usecols = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
         dat.columns = ['Time', 'FrontHeel', 'FrontMedial','FrontLateral','FrontTotal', 'Time2', 'RearLateral','RearMedial','RearHeel','RearTotal']
         info = fName.split(sep = "/")[-1]
         subName = info.split(sep = "_")[0]
@@ -137,6 +179,7 @@ for fName in entries:
         pts = np.asarray(plt.ginput(2, timeout=-1))
         plt.close()
         dat = dat.iloc[int(np.floor(pts[0,0])) : int(np.floor(pts[1,0])),:]
+        dat = dat.reset_index()
         
         dat['TotalFront'] = dat.FrontHeel + dat.FrontToes
         dat['TotalRear'] = dat.RearHeel + dat.RearToes
@@ -177,37 +220,31 @@ for fName in entries:
         
         dat['ToeProp'] = dat.bothToes_Filt/dat.Total_Filt
         
-        # plt.plot(dat.TotalFront, label = 'Total Front Foot Force')
-        # plt.plot(dat.FrontToes_Filt, label = 'Front Toe Force')
-        # plt.plot(dat.FrontHeel_Filt, label = 'Front Heel Force')
-        # plt.legend()
-      
+        realToeStart = findToeTurns(dat.bothToes_Filt, dat.bothHeels_Filt)
+        realHeelStart = findHeelTurns(dat.bothToes_Filt, dat.bothHeels_Filt)
+        # clean below by not taking false start turns #        
+        realHeelStart = cleanTurns(realHeelStart)
+        realToeStart = cleanTurns(realToeStart)
         
-        # plt.plot(dat.bothToes_Filt)
-        # plt.plot(dat.bothHeels_Filt)
+        makeVizPlot(dat, realToeStart, realHeelStart)
+        answer = messagebox.askyesno("Question","Is data clean?")
         
-        tmpToes = np.array(dat.bothToes_Filt)
-        tmpHeel = np.array(dat.bothHeels_Filt)
+        if answer == False:
+            plt.close('all')
+            print('Adding file to bad file list')
+            badFileList.append(fName)
         
-        realToeStart = findToeTurns(tmpToes, tmpHeel)
-        realHeelStart = findHeelTurns(tmpToes, tmpHeel)
+        if answer == True:
+            plt.close('all')
+            print('Estimating point estimates')
+
         
-        realHeelStart[:] = [x for x in realHeelStart if x > realToeStart[0]] # we want first heel turn after first toe turn
-        realToeStart[:] = [x for x in realToeStart if x < realHeelStart[-1]] # we want to end on a heel turn
-        
-                  
-        
-        
-        for i in range(len(realToeStart)-1):
-            ### Loop through toe turns to extract variables. Note we are only using turns longer than 1 sec (100 frames)
-            #i = 10
-            turnTime = realHeelStart[i] - realToeStart[i] 
-            
-            if turnTime >= 100:
+            for i in range(len(realToeStart)-1):
+                ### Loop through toe turns to extract variables. 
                 
                 try:
-                    #i = 1
-                    ### Time Series
+                    # #i = 1
+                    # ### Time Series
             
                     toeTurns_FrontHeel.append(dat.FrontHeel[realToeStart[i]:realToeStart[i] + 100])
                     toeTurns_FrontToes.append(dat.FrontToes[realToeStart[i]:realToeStart[i] + 100])
@@ -288,67 +325,13 @@ outcomes = pd.DataFrame({'Subject':list(Subject), 'Config': list(Config), 'Trial
                          
                          })
 
-outfileName = fPath + 'CompiledResults6.csv'
+# outfileName = fPath + 'CompiledResults6.csv'
 
-if os.path.exists(outfileName) == False:
+# if os.path.exists(outfileName) == False:
     
-    outcomes.to_csv(outfileName, mode='a', header=True, index = False)
+#     outcomes.to_csv(outfileName, mode='a', header=True, index = False)
 
-else:
-    outcomes.to_csv(outfileName, mode='a', header=False, index = False)
+# else:
+#     outcomes.to_csv(outfileName, mode='a', header=False, index = False)
 
 
-
-### Plotting time series. NOT FINISHED. Not needed for performance tests.
-
-configs = np.unique(Config)
-toeTurn_FrontHeel = np.stack(toeTurns_FrontHeel)
-toeTurn_FrontToes = np.stack(toeTurns_FrontToes)
-toeTurn_RearHeel = np.stack(toeTurns_RearHeel)
-toeTurn_RearToes = np.stack(toeTurns_RearToes)
-heelTurn_FrontHeel = np.stack(heelTurns_FrontHeel)
-heelTurn_FrontToes = np.stack(heelTurns_FrontToes)
-heelTurn_RearHeel = np.stack(heelTurns_RearHeel)
-heelTurn_RearToes = np.stack(heelTurns_RearToes)
-
-Config = np.array(Config)
-toeTurn_FrontHeel = np.column_stack((Config, toeTurn_FrontHeel))
-toeTurn_FrontToes = np.column_stack((Config, toeTurn_FrontToes))
-toeTurn_RearHeel = np.column_stack((Config, toeTurn_RearHeel))
-toeTurn_RearToes = np.column_stack((Config, toeTurn_RearToes))
-heelTurn_FrontHeel = np.column_stack((Config, heelTurn_FrontHeel))
-heelTurn_FrontToes = np.column_stack((Config, heelTurn_FrontToes))
-heelTurn_RearHeel = np.column_stack((Config, heelTurn_RearHeel))
-heelTurn_RearToes = np.column_stack((Config, heelTurn_RearToes))
-
-plt.figure(1)
-plt.title('ToeTurn_FrontFoot')
-
-plt.figure(2)
-plt.title('ToeTurn_RearFoot')
-
-plt.figure(3)
-plt.title('HeelTurn_FrontFoot')
-
-plt.figure(4)
-plt.title('HeelTurn_RearFoot')
-
-for config in configs:
-    
-    config = configs[0]
-    tmpToeTurn_FrontHeel = toeTurn_FrontHeel[toeTurn_FrontHeel[:,0] == config]
-    toeTurn_FrontHeelmean = np.mean(toeTurn_FrontHeel, axis = 0)
-    toeTurn_RearHeelmean = np.mean(toeTurn_RearHeel, axis = 0)
-    toeTurn_FrontToesmean = np.mean(toeTurn_FrontToes, axis = 0)
-    toeTurn_RearToesmean = np.mean(toeTurn_RearToes, axis = 0)
-
-heelTurn_FrontHeelmean = np.mean(heelTurn_FrontHeel, axis = 0)
-heelTurn_RearHeelmean = np.mean(heelTurn_RearHeel, axis = 0)
-heelTurn_FrontToesmean = np.mean(heelTurn_FrontToes, axis = 0)
-heelTurn_RearToesmean = np.mean(heelTurn_RearToes, axis = 0)
-
-plt.figure(1)
-plt.title('ToeTurn_FrontFoot')
-plt.plot(toeTurn_FrontHeelmean, label = 'Heel_' + configName) 
-plt.plot(toeTurn_FrontToesmean, label = 'Toes_' + configName)
-plt.legend()
