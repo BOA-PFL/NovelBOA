@@ -13,6 +13,8 @@ import os
 from tkinter.filedialog import askopenfilenames
 from tkinter import messagebox
 
+pd.options.mode.chained_assignment = None  # default='warn' set to warn for a lot of warnings
+
 # plt.plot(dat.bothToes_Filt, label = 'toes') 
 # plt.plot(dat.bothHeels_Filt, label = 'heels')
 # plt.legend()
@@ -88,8 +90,8 @@ def makeVizPlot(inputDF, inputToeTurns, inputHeelTurns):
     makes plot to check data
     """
     fig, (ax, ax1) = plt.subplots(1,2)
-    ax.plot(inputDF.bothToes_Filt, label = 'Front Toe Force')
-    ax.plot(inputDF.bothHeels_Filt, label = 'Front Heel Force')
+    ax.plot(inputDF.bothToes_Filt, label = 'Total Toe Force')
+    ax.plot(inputDF.bothHeels_Filt, label = 'Total Heel Force')
     ax.vlines(x = inputToeTurns, ymin = 0, ymax = 1000,
       color = 'k', label = 'Toe Turn Start', linewidth=3.0, ls='--')
     ax.legend() 
@@ -104,10 +106,11 @@ def makeVizPlot(inputDF, inputToeTurns, inputHeelTurns):
 # Read in files
 
 fPath = 'C:\\Users\\daniel.feeney\\Boa Technology Inc\\PFL Team - General\\Testing Segments\\Snow Performance\\SB_2DialTakeDown_Mar2022\\Forces\\'
-
-# entries = os.listdir(fPath)
+fileExt = r".txt"
+entries = [fName for fName in os.listdir(fPath) if fName.endswith(fileExt)]
+entries = os.listdir(fPath)
 # Select files for a single subject
-entries = askopenfilenames(initialdir = fPath)
+#entries = askopenfilenames(initialdir = fPath)
 
 ### Initiate Time Series
 
@@ -148,8 +151,8 @@ for fName in entries:
     
     ### Loop through each file, use time series of force data to identify turns.
     try:
-        #fName = entries[0] 
-        dat = pd.read_csv(fName,sep='\t', skiprows = 4, header = None, index_col = False, usecols = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
+        #fName = entries
+        dat = pd.read_csv(fPath + fName,sep='\t', skiprows = 4, header = None, index_col = False, usecols = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
         dat.columns = ['Time', 'FrontHeel', 'FrontMedial','FrontLateral','FrontTotal', 'Time2', 'RearLateral','RearMedial','RearHeel','RearTotal']
         info = fName.split(sep = "/")[-1]
         subName = info.split(sep = "_")[0]
@@ -221,7 +224,7 @@ for fName in entries:
         realHeelStart = findHeelTurns(dat.bothToes_Filt, dat.bothHeels_Filt)
         # clean below by not taking false start turns #        
         realHeelStart = cleanTurns(realHeelStart)
-        realToesStart = cleanTurns(realToeStart)
+        realToeStart = cleanTurns(realToeStart)
         
         makeVizPlot(dat, realToeStart, realHeelStart)
         answer = messagebox.askyesno("Question","Is data clean?")
@@ -240,8 +243,8 @@ for fName in entries:
                 ### Loop through toe turns to extract variables. 
                 
                 try:
-                    #i = 1
-                    ### Time Series
+                    # #i = 1
+                    # ### Time Series
             
                     toeTurns_FrontHeel.append(dat.FrontHeel[realToeStart[i]:realToeStart[i] + 100])
                     toeTurns_FrontToes.append(dat.FrontToes[realToeStart[i]:realToeStart[i] + 100])
@@ -332,57 +335,3 @@ outcomes = pd.DataFrame({'Subject':list(Subject), 'Config': list(Config), 'Trial
 #     outcomes.to_csv(outfileName, mode='a', header=False, index = False)
 
 
-
-### Plotting time series. NOT FINISHED.
-
-# configs = np.unique(Config)
-# toeTurn_FrontHeel = np.stack(toeTurns_FrontHeel)
-# toeTurn_FrontToes = np.stack(toeTurns_FrontToes)
-# toeTurn_RearHeel = np.stack(toeTurns_RearHeel)
-# toeTurn_RearToes = np.stack(toeTurns_RearToes)
-# heelTurn_FrontHeel = np.stack(heelTurns_FrontHeel)
-# heelTurn_FrontToes = np.stack(heelTurns_FrontToes)
-# heelTurn_RearHeel = np.stack(heelTurns_RearHeel)
-# heelTurn_RearToes = np.stack(heelTurns_RearToes)
-
-# Config = np.array(Config)
-# toeTurn_FrontHeel = np.column_stack((Config, toeTurn_FrontHeel))
-# toeTurn_FrontToes = np.column_stack((Config, toeTurn_FrontToes))
-# toeTurn_RearHeel = np.column_stack((Config, toeTurn_RearHeel))
-# toeTurn_RearToes = np.column_stack((Config, toeTurn_RearToes))
-# heelTurn_FrontHeel = np.column_stack((Config, heelTurn_FrontHeel))
-# heelTurn_FrontToes = np.column_stack((Config, heelTurn_FrontToes))
-# heelTurn_RearHeel = np.column_stack((Config, heelTurn_RearHeel))
-# heelTurn_RearToes = np.column_stack((Config, heelTurn_RearToes))
-
-# plt.figure(1)
-# plt.title('ToeTurn_FrontFoot')
-
-# plt.figure(2)
-# plt.title('ToeTurn_RearFoot')
-
-# plt.figure(3)
-# plt.title('HeelTurn_FrontFoot')
-
-# plt.figure(4)
-# plt.title('HeelTurn_RearFoot')
-
-# for config in configs:
-    
-#     config = configs[0]
-#     tmpToeTurn_FrontHeel = toeTurn_FrontHeel[toeTurn_FrontHeel[:,0] == config]
-#     toeTurn_FrontHeelmean = np.mean(toeTurn_FrontHeel, axis = 0)
-#     toeTurn_RearHeelmean = np.mean(toeTurn_RearHeel, axis = 0)
-#     toeTurn_FrontToesmean = np.mean(toeTurn_FrontToes, axis = 0)
-#     toeTurn_RearToesmean = np.mean(toeTurn_RearToes, axis = 0)
-
-# heelTurn_FrontHeelmean = np.mean(heelTurn_FrontHeel, axis = 0)
-# heelTurn_RearHeelmean = np.mean(heelTurn_RearHeel, axis = 0)
-# heelTurn_FrontToesmean = np.mean(heelTurn_FrontToes, axis = 0)
-# heelTurn_RearToesmean = np.mean(heelTurn_RearToes, axis = 0)
-
-# plt.figure(1)
-# plt.title('ToeTurn_FrontFoot')
-# plt.plot(toeTurn_FrontHeelmean, label = 'Heel_' + configName) 
-# plt.plot(toeTurn_FrontToesmean, label = 'Toes_' + configName)
-# plt.legend()

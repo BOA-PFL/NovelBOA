@@ -131,7 +131,7 @@ for fName in entries:
     try:
         # Loop through files and use time series force data to identify turns
         #fName = entries[2]
-        dat = pd.read_csv(fName, sep = '	',skiprows = 3, header = 0, index_col = False)
+        dat = pd.read_csv(fPath+fName, sep = '	',skiprows = 3, header = 0, index_col = False)
         dat.columns = ['Time', 'LHeel', 'LMedial','LLateral','LTotal', 'Time2', 
                        'RLateral','RMedial','RHeel','RTotal', 'time2','accX','axxY','accZ','pass']
         
