@@ -17,7 +17,9 @@ import matplotlib.pyplot as plt
 import os
 from scipy import signal
 from tkinter.filedialog import askopenfilenames
+from tkinter import messagebox
 
+### TOTO: improve peak detection & turn inititiation algorithm, add right turns
 
 def findRightTurns(RForce, LForce):
     """
@@ -123,6 +125,7 @@ cvForce = []
 lTurn = []
 sName = []
 cName = []
+badFileList = []
 
 for fName in entries:
     try:
@@ -179,45 +182,56 @@ for fName in entries:
         RTurns = cleanTurns(RTurns)
         LTurns = cleanTurns(LTurns)
         
-        makeTurnPlot(dat, RTurns, 'Right Turns')
         makeTurnPlot(dat, LTurns, 'Left Turns')
-    
-
-        for i, value in enumerate(LTurns):
-            # Loop through all cleaned turns to calculate discrete outcome measures.
-            # using right side only (left turns). No longer assuming left to right
-            # transitions are constant and only using data from one side. 
-            # Could port this to do R Turns as well. 
-
-            try:
-                
-                pkIdx = np.argmax(dat.RTotal_Filt[LTurns[i]:LTurns[i+1]])
-                pkIdx = value + pkIdx
-                
-                ## Extract relevent parameters from a turn here ##
-                # EARLY TURN DH FORCE: Proportion of force on downhill foot. Higher is better
-                OutsideFootForce.append( dat.RTotal_Filt[pkIdx]/(dat.LTotal_Filt[pkIdx] + dat.RTotal_Filt[pkIdx]) )
-                # FOOT ROLL. Proportion of force on outside medial 
-                OutsideFootMedialForce.append( dat.RMedial_Filt[pkIdx]/dat.RTotal_Filt[pkIdx] ) 
-                # FORWARD STANCE. Proportion of heel force during early turn
-                avgOutsideHeelStart.append( np.mean(dat.RHeel_Filt[value:pkIdx])/np.mean(dat.RTotal_Filt[value:pkIdx] )) 
-                
-                tmpHeel = dat["RHeel_Filt"].tolist()
-                tmpToes = dat.RMedial_Filt + dat.RLateral_Filt
-                tmpToes = tmpToes.tolist()
-                
-                pkOutsideHeelLate = np.max(dat.RHeel_Filt[pkIdx: LTurns[i+1]])
-                pkOutsideHeelLateIdx = tmpHeel.index(pkOutsideHeelLate) 
-                propHeelLate.append(( pkOutsideHeelLate - tmpToes[pkOutsideHeelLateIdx])/dat.RTotal_Filt[pkOutsideHeelLateIdx])
-                # BALANCE - proportion of force on heel vs. toes late in turn (50% is ideal)
-                absPropHeelLate.append(abs(propHeelLate[-1])) 
-                lTurn.append('Left') 
-                sName.append(subName)
-                cName.append(configName)
-                
-            except:
-                print(fName + str(i))
+        answer = messagebox.askyesno("Question","Is data clean?")
         
+        if answer == False:
+            plt.close('all')
+            print('Adding file to bad file list')
+            badFileList.append(fName)
+        
+        if answer == True:
+            plt.close('all')
+            print('Estimating point estimates')
+        
+        
+            for i, value in enumerate(LTurns):
+                # Loop through all cleaned turns to calculate discrete outcome measures.
+                # using right side only (left turns). No longer assuming left to right
+                # transitions are constant and only using data from one side. 
+                # Could port this to do R Turns as well. 
+    
+                try:
+                    
+                    pkIdx = np.argmax(dat.RTotal_Filt[LTurns[i]:LTurns[i+1]])
+                    pkIdx = value + pkIdx
+                    
+                    ## Extract relevent parameters from a turn here ##
+                    # EARLY TURN DH FORCE: Proportion of force on downhill foot. Higher is better
+                    OutsideFootForce.append( dat.RTotal_Filt[pkIdx]/(dat.LTotal_Filt[pkIdx] + dat.RTotal_Filt[pkIdx]) )
+                    # FOOT ROLL. Proportion of force on outside medial 
+                    OutsideFootMedialForce.append( dat.RMedial_Filt[pkIdx]/dat.RTotal_Filt[pkIdx] ) 
+                    # FORWARD STANCE. Proportion of heel force during early turn
+                    avgOutsideHeelStart.append( np.mean(dat.RHeel_Filt[value:pkIdx])/np.mean(dat.RTotal_Filt[value:pkIdx] )) 
+                    
+                    tmpHeel = dat["RHeel_Filt"].tolist()
+                    tmpToes = dat.RMedial_Filt + dat.RLateral_Filt
+                    tmpToes = tmpToes.tolist()
+                    
+                    pkOutsideHeelLate = np.max(dat.RHeel_Filt[pkIdx: LTurns[i+1]])
+                    pkOutsideHeelLateIdx = tmpHeel.index(pkOutsideHeelLate) 
+                    propHeelLate.append(( pkOutsideHeelLate - tmpToes[pkOutsideHeelLateIdx])/dat.RTotal_Filt[pkOutsideHeelLateIdx])
+                    # BALANCE - proportion of force on heel vs. toes late in turn (50% is ideal)
+                    absPropHeelLate.append(abs(propHeelLate[-1])) 
+                    lTurn.append('Left') 
+                    sName.append(subName)
+                    cName.append(configName)
+                    
+                except:
+                    print(fName + str(i))
+            
+            #makeTurnPlot(dat, RTurns, 'Right Turns')
+            
     except:
         print(fName)
 
@@ -230,7 +244,7 @@ outcomes = pd.DataFrame({'Subject':list(sName),'Config':list(cName),'TurnType': 
                                  'propHeelLate':list(propHeelLate), 'absPropHeelLate':list(absPropHeelLate)
                                  })
          
-        
+  
 # outfileName = fPath + 'CompiledResults2.csv'
 
 # if os.path.exists(outfileName) == False:
