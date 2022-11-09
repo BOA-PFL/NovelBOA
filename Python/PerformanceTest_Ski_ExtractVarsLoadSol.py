@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-3
 """
 Created on Wed Dec 16 16:19:30 2020
 When you have both sides of data from loadsol
@@ -19,7 +19,6 @@ from scipy import signal
 from tkinter.filedialog import askopenfilenames
 from tkinter import messagebox
 
-### TOTO: improve peak detection & turn inititiation algorithm, add right turns
 
 def findRightTurns(RForce, LForce):
     """
@@ -28,21 +27,20 @@ def findRightTurns(RForce, LForce):
 
     Parameters
     ----------
-    RForce : numpy array
+    RForce : Pandas Column
         Time series of force data under right foot.
-    LForce : numpy array
+    LForce : Pandas Column
         Time series of force data under left foot. 
 
     Returns
     -------
-    RTurns : numpy array
+    RTurns : List
         Index of frames where right turns started. 
 
     """
     RTurns = []
-
     for step in range(len(RForce)-1):
-        if LForce[step] <= RForce[step] and LForce[step + 1] > RForce[step + 1]:
+        if LForce[step] <= RForce[step] and LForce[step + 1] > RForce[step + 1] and np.mean(LForce[step:step+200] > np.mean(RForce[step:step+200])):
             RTurns.append(step)
     return RTurns
 
@@ -53,20 +51,20 @@ def findLeftTurns(RForce, LForce):
 
     Parameters
     ----------
-    RForce : numpy array
+    RForce : Pandas Column
         Time series of force data under the right foot. 
-    LForce : numpy array
+    LForce : Pandas Column
         Time series of force data under the left foot. 
 
     Returns
     -------
-    LTurns : numpy array
+    LTurns : list
         Index of frames where left turns started. 
 
     """
     LTurns = []
     for step in range(len(RForce)-1):
-        if RForce[step] <= LForce[step] and RForce[step + 1] > LForce[step + 1]:
+        if RForce[step] <= LForce[step] and RForce[step + 1] > LForce[step + 1] and np.mean(RForce[step:step+200]) > np.mean(LForce[step:step+200]) :
             LTurns.append(step)
     return LTurns
 
@@ -112,8 +110,10 @@ def makeTurnPlot(inputDF, turnIndices, turnSide):
 #makeTurnPlot(dat, RTurns, 'Right')
 ## Example data lives in there and work well ## 
 
-fPath = 'C:/Users/daniel.feeney/Boa Technology Inc/PFL - Documents/General/Testing Segments/Snow Performance/Alpine_CuffOnSnow_Apr2022/XSENSORdata/'
-entries = askopenfilenames(initialdir = fPath)
+fPath = 'C:\\Users\\daniel.feeney\\Boa Technology Inc\\PFL Team - General\\Testing Segments\\Snow Performance\\Alpine_CuffOnSnow_Apr2022\\XSENSORdata\\'
+fileExt = r".txt"
+entries = [fName for fName in os.listdir(fPath) if fName.endswith(fileExt)]
+#entries = askopenfilenames(initialdir = fPath)
 
 # Initiate discrete outcome variables
 OutsideFootForce = []
@@ -175,10 +175,7 @@ for fName in entries:
        
         RTurns = findRightTurns(dat.RTotal_Filt, dat.LTotal_Filt)
         LTurns = findLeftTurns(dat.RTotal_Filt, dat.LTotal_Filt)
-        
-        RTurns[:] = [x for x in RTurns if x > LTurns[0]] # we want first right turn after first left turn
-        LTurns[:] = [x for x in LTurns if x < RTurns[-1]] # we want to end with a Right Turn 
-        
+
         RTurns = cleanTurns(RTurns)
         LTurns = cleanTurns(LTurns)
         
@@ -245,13 +242,13 @@ outcomes = pd.DataFrame({'Subject':list(sName),'Config':list(cName),'TurnType': 
                                  })
          
   
-# outfileName = fPath + 'CompiledResults2.csv'
+outfileName = fPath + 'CompiledResults2.csv'
 
-# if os.path.exists(outfileName) == False:
+if os.path.exists(outfileName) == False:
     
-#     outcomes.to_csv(outfileName, mode='a', header=True, index = False)
+    outcomes.to_csv(outfileName, mode='a', header=True, index = False)
 
-# else:
-#     outcomes.to_csv(outfileName, mode='a', header=False, index = False) 
+else:
+    outcomes.to_csv(outfileName, mode='a', header=False, index = False) 
 
 
