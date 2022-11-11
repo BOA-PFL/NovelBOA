@@ -12,10 +12,24 @@ import numpy as np
 import matplotlib.pyplot as plt
 from scipy import signal
 import os
-from tkinter.filedialog import askopenfilenames
 from tkinter import messagebox
 import scipy
 from dataclasses import dataclass
+
+### main inputs ###
+
+# select files
+
+fPath = 'C:\\Users\\daniel.feeney\\Boa Technology Inc\\PFL Team - General\\Testing Segments\\Snow Performance\\SB_2DialTakeDown_Mar2022\\Forces\\'
+fileExt = r".txt"
+entries = [fName for fName in os.listdir(fPath) if fName.endswith(fileExt)]
+entries = os.listdir(fPath)
+
+# Choose two files to compare
+fName1 = entries[1]
+fName2 = entries[3]
+
+stepLen = 400
 
 ### set plot font size ###
 SMALL_SIZE = 14
@@ -279,23 +293,11 @@ def calcTurnStarts(fName):
                
     return(result)
 
-# select files
-
-fPath = 'C:\\Users\\daniel.feeney\\Boa Technology Inc\\PFL Team - General\\Testing Segments\\Snow Performance\\SB_2DialTakeDown_Mar2022\\Forces\\'
-fileExt = r".txt"
-entries = [fName for fName in os.listdir(fPath) if fName.endswith(fileExt)]
-entries = os.listdir(fPath)
-
-# Choose two files to compare
-fName1 = entries[1]
-fName2 = entries[3]
-
 turnsRound1 = calcTurnStarts(fName1)
 turnsRound2 = calcTurnStarts(fName2)
-
-stepLen = 400
 x = np.linspace(0,stepLen,stepLen)
 
+## Calculating averaged data ## 
 toeForceMat = forceMatrix(turnsRound1.df.bothToes_Filt, turnsRound1.toestarts, len(turnsRound1.toestarts), stepLen)
 meanToeForce = np.mean(toeForceMat, axis = 0)
 sdToeForce = np.std(toeForceMat, axis = 0)
@@ -312,6 +314,14 @@ heelForceMat2 = forceMatrix(turnsRound2.df.bothHeels_Filt, turnsRound2.heelstart
 meanHeelForce2 = np.mean(heelForceMat2, axis = 0)
 sdHeelForce2 = np.std(heelForceMat2, axis = 0)
 
+### Calculating heel force during toe turns ##
+heelForceToeTurn = forceMatrix(turnsRound1.df.bothHeels_Filt, turnsRound1.toestarts, len(turnsRound1.toestarts), stepLen)
+meanHeelForceTT = np.mean(heelForceToeTurn, axis = 0)
+sdHeelForceTT = np.std(heelForceToeTurn, axis = 0)
+
+heelForceToeTurn2 = forceMatrix(turnsRound2.df.bothHeels_Filt, turnsRound2.heelstarts, len(turnsRound2.toestarts), stepLen)
+meanHeelForceTT2 = np.mean(heelForceToeTurn, axis = 0)
+sdHeelForceTT2 = np.std(heelForceToeTurn, axis = 0)
 
 ### plotting ### 
 fig, (ax1, ax2) = plt.subplots(2)
@@ -323,7 +333,7 @@ ax1.fill_between(x,meanToeForce2-sdToeForce2, meanToeForce2+sdToeForce2,
     alpha=0.5, edgecolor='#00966C', facecolor='#00966C', label = turnsRound2.config)
 ax1.legend()
 ax1.set_title('Toe Turns')
-ax1.set_ylabel('Force (N)')
+ax1.set_ylabel('Toe Force (N)')
 ax2.plot(x, meanHeelForce, 'k', color='#DC582A')
 ax2.fill_between(x,meanHeelForce-sdHeelForce, meanHeelForce+sdHeelForce,
     alpha=0.5, edgecolor='#DC582A', facecolor='#DC582A', label = turnsRound1.config)
@@ -332,4 +342,16 @@ ax2.fill_between(x,meanHeelForce2-sdHeelForce2, meanHeelForce2+sdHeelForce2,
     alpha=0.5, edgecolor='#00966C', facecolor='#00966C', label = turnsRound2.config)
 ax2.set_title('Heel Turns')
 ax2.legend()
-ax2.set_ylabel('Force (N)')
+ax2.set_ylabel('Heel Force (N)')
+
+
+fig2, ax3 = plt.subplots(1)
+ax3.plot(x, meanHeelForceTT, 'k', color='#DC582A')
+ax3.fill_between(x,meanHeelForceTT-sdHeelForceTT, meanHeelForceTT+sdHeelForceTT,
+    alpha=0.5, edgecolor='#DC582A', facecolor='#DC582A', label = turnsRound1.config)
+ax3.plot(x, meanHeelForce2, 'k', color='#00966C')
+ax3.fill_between(x,meanHeelForce2-sdToeForce2, meanToeForce2+sdToeForce2,
+    alpha=0.5, edgecolor='#00966C', facecolor='#00966C', label = turnsRound2.config)
+ax3.legend()
+ax3.set_title('Heel Force During Toe Turns')
+ax3.set_ylabel('Heel Force (N)')
