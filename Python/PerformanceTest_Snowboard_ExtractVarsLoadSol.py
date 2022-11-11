@@ -12,12 +12,12 @@ from scipy import signal
 import os
 from tkinter.filedialog import askopenfilenames
 from tkinter import messagebox
+import scipy
 
 pd.options.mode.chained_assignment = None  # default='warn' set to warn for a lot of warnings
+save_on = 0
+TS_plots = 0 # turn on for time series plotting but not encouraged for running thru all files
 
-# plt.plot(dat.bothToes_Filt, label = 'toes') 
-# plt.plot(dat.bothHeels_Filt, label = 'heels')
-# plt.legend()
 
 def findToeTurns(toeForce, heelForce):
     """
@@ -102,6 +102,38 @@ def makeVizPlot(inputDF, inputToeTurns, inputHeelTurns):
       color = 'k', label = 'Heel Turn Start', linewidth=3.0, ls='--')
     ax1.legend()       
     ax1.set_title('Heel Turns')
+    
+def intp_strides(var,landings,GS):
+    """
+    Function to interpolate the variable of interest across a stride
+    (from foot contact to subsiquent foot contact) in order to plot the 
+    variable of interest over top each other
+
+    Parameters
+    ----------
+    var : list or numpy array
+        Variable of interest. Can be taken from a dataframe or from a numpy array
+    landings : list
+        Foot contact indicies
+    GS: list 
+        Good strides that have been passed through the post-hoc filter process
+
+    Returns
+    -------
+    intp_var : numpy array
+        Interpolated variable to 101 points with the number of columns dictated
+        by the number of strides.
+
+    """
+    # Preallocate
+    intp_var = np.zeros((101,len(GS)-1))
+    # Index through the strides
+    for ii in range(len(GS)-1):
+        dum = var[landings[GS[ii]]:landings[GS[ii]+1]]
+        f = scipy.interpolate.interp1d(np.arange(0,len(dum)),dum)
+        intp_var[:,ii] = f(np.linspace(0,len(dum)-1,101))
+        
+    return intp_var
 
 # Read in files
 
@@ -325,13 +357,64 @@ outcomes = pd.DataFrame({'Subject':list(Subject), 'Config': list(Config), 'Trial
                          
                          })
 
-# outfileName = fPath + 'CompiledResults6.csv'
-
-# if os.path.exists(outfileName) == False:
+if save_on == 1:
+    outfileName = fPath + 'CompiledResults6.csv'
     
-#     outcomes.to_csv(outfileName, mode='a', header=True, index = False)
+    if os.path.exists(outfileName) == False:
+        
+        outcomes.to_csv(outfileName, mode='a', header=True, index = False)
+    
+    else:
+        outcomes.to_csv(outfileName, mode='a', header=False, index = False)
 
-# else:
-#     outcomes.to_csv(outfileName, mode='a', header=False, index = False)
 
-
+########## Plotting ############
+# preallocate matrix for force and fill in with force data
+def forceMatrix(inputForce, landings, noSteps, stepLength):
+    """
+    input a force signal, return matrix with n rows (for each landing) by m col
+    #for each point in stepLen
+    """
+    preForce = np.zeros((noSteps,stepLength))
+    
+    for iterVar, landing in enumerate(landings):
+        try:
+            preForce[iterVar,] = inputForce[landing:landing+stepLength]
+        except:
+            print(landing)
+            
+    return preForce
+    
+#TS_plots = 1
+if TS_plots == 1:
+    
+    stepLen = 400
+    x = np.linspace(0,stepLen,stepLen)
+    toeForceMat = forceMatrix(dat.bothToes_Filt, realToeStart, len(realToeStart), stepLen)
+    meanToeForce = np.mean(toeForceMat, axis = 0)
+    sdToeForce = np.std(toeForceMat, axis = 0)
+    
+    heelForceMat = forceMatrix(dat.bothHeels_Filt, realHeelStart, len(realHeelStart), stepLen)
+    meanHeelForce = np.mean(heelForceMat, axis = 0)
+    sdHeelForce = np.std(heelForceMat, axis = 0)
+    
+    fig, ((ax1, ax2), (ax3, ax4)) = plt.subplots(2,2)
+    ax1.plot(intp_strides(dat.bothToes_Filt, realToeStart, np.arange(0,len(realToeStart))))
+    ax1.set_title('Toe Turns')
+    ax1.set_ylabel('Force (N)')
+    ax3.plot(intp_strides(dat.bothHeels_Filt, realHeelStart, np.arange(0,len(realHeelStart))))
+    ax3.set_title('Heel Turns')
+    ax3.set_ylabel('Force (N)')
+    #fig2, (ax1, ax2) = plt.subplots(2)
+    ax2.plot(x,meanToeForce, 'k', color='#003D4C', label = 'Toe Force (N)')
+    ax2.fill_between(x,meanToeForce-sdToeForce, meanToeForce+sdToeForce,
+        alpha=0.5, edgecolor='#003D4C', facecolor='#003D4C')
+    #ax1.set_ylim([0,1500])
+    ax2.set_title('Toe Turns')
+    ax2.set_ylabel('Force (N)')
+    ax4.plot(x,meanHeelForce, 'k', color='#003D4C', label = 'Heel Force (N)')
+    ax4.fill_between(x,meanHeelForce-sdHeelForce, meanHeelForce+sdHeelForce,
+        alpha=0.5, edgecolor='#003D4C', facecolor='#003D4C')
+    #ax2.set_ylim([0,1500])
+    ax4.set_title('Heel Turns')
+    ax4.set_ylabel('Force (N)')
