@@ -13,7 +13,6 @@ import matplotlib.pyplot as plt
 from scipy import signal
 import os
 from tkinter import messagebox
-import scipy
 from dataclasses import dataclass
 
 ### main inputs ###
@@ -56,6 +55,24 @@ class TurnStarts:
     toestarts: list
     heelstarts: list
     df: pd.DataFrame
+    
+
+@dataclass
+class EnsembleData:
+    meanData: np.ndarray
+    sdData: np.ndarray
+    
+def calcEnsembleData(Force, TurnStarts, stepLength):
+    """ 
+    Calculates ensemble averaged force and SD data from a time series
+    """
+    rightForceMat = forceMatrix(Force, TurnStarts, len(TurnStarts), stepLength)
+    meanRightForce = np.mean(rightForceMat, axis = 0)
+    sdRightForce = np.std(rightForceMat, axis = 0)
+    
+    result = EnsembleData(meanRightForce, sdRightForce)
+    
+    return(result)
 
 def findToeTurns(toeForce, heelForce):
     """
@@ -141,37 +158,7 @@ def makeVizPlot(inputDF, inputToeTurns, inputHeelTurns):
     ax1.legend()       
     ax1.set_title('Heel Turns')
     
-def intp_strides(var,landings,GS):
-    """
-    Function to interpolate the variable of interest across a stride
-    (from foot contact to subsiquent foot contact) in order to plot the 
-    variable of interest over top each other
 
-    Parameters
-    ----------
-    var : list or numpy array
-        Variable of interest. Can be taken from a dataframe or from a numpy array
-    landings : list
-        Foot contact indicies
-    GS: list 
-        Good strides that have been passed through the post-hoc filter process
-
-    Returns
-    -------
-    intp_var : numpy array
-        Interpolated variable to 101 points with the number of columns dictated
-        by the number of strides.
-
-    """
-    # Preallocate
-    intp_var = np.zeros((101,len(GS)-1))
-    # Index through the strides
-    for ii in range(len(GS)-1):
-        dum = var[landings[GS[ii]]:landings[GS[ii]+1]]
-        f = scipy.interpolate.interp1d(np.arange(0,len(dum)),dum)
-        intp_var[:,ii] = f(np.linspace(0,len(dum)-1,101))
-        
-    return intp_var
 
 # preallocate matrix for force and fill in with force data
 def forceMatrix(inputForce, landings, noSteps, stepLength):
@@ -192,14 +179,14 @@ def forceMatrix(inputForce, landings, noSteps, stepLength):
 def calcTurnStarts(fName):
     """
         
-        Parameters
-        ----------
-        fName : str
-            the filename to a relevant txt file with loadsol data.
-    
-        Returns an instance of dataclass with config, subname, turn start indices
-        that will be used in subsequent plotting
-        -------
+    Parameters
+    ----------
+    fName : str
+        the filename to a relevant txt file with loadsol data.
+
+    Returns an instance of dataclass with config, subname, turn start indices
+    that will be used in subsequent plotting
+    -------
     
     """
     dat = pd.read_csv(fPath + fName,sep='\t', skiprows = 4, header = None, index_col = False, usecols = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
@@ -298,47 +285,32 @@ turnsRound2 = calcTurnStarts(fName2)
 x = np.linspace(0,stepLen,stepLen)
 
 ## Calculating averaged data ## 
-toeForceMat = forceMatrix(turnsRound1.df.bothToes_Filt, turnsRound1.toestarts, len(turnsRound1.toestarts), stepLen)
-meanToeForce = np.mean(toeForceMat, axis = 0)
-sdToeForce = np.std(toeForceMat, axis = 0)
 
-heelForceMat = forceMatrix(turnsRound1.df.bothHeels_Filt, turnsRound1.heelstarts, len(turnsRound1.heelstarts), stepLen)
-meanHeelForce = np.mean(heelForceMat, axis = 0)
-sdHeelForce = np.std(heelForceMat, axis = 0)
+toeForceAvg = calcEnsembleData(turnsRound1.df.bothToes_Filt,  turnsRound1.toestarts, stepLen)
+heelForceAvg = calcEnsembleData(turnsRound1.df.bothHeels_Filt, turnsRound1.heelstarts, stepLen)
+toeForceAvg2 = calcEnsembleData(turnsRound2.df.bothToes_Filt,  turnsRound2.toestarts, stepLen)
+heelForceAvg2 = calcEnsembleData(turnsRound2.df.bothHeels_Filt, turnsRound2.heelstarts, stepLen)
 
-toeForceMat2 = forceMatrix(turnsRound2.df.bothToes_Filt, turnsRound2.toestarts, len(turnsRound2.toestarts), stepLen)
-meanToeForce2 = np.mean(toeForceMat2, axis = 0)
-sdToeForce2 = np.std(toeForceMat2, axis = 0)
+heelForceTT = calcEnsembleData(turnsRound1.df.bothHeels_Filt, turnsRound1.toestarts, stepLen)
+heelForceTT2 = calcEnsembleData(turnsRound2.df.bothHeels_Filt, turnsRound2.toestarts, stepLen)
 
-heelForceMat2 = forceMatrix(turnsRound2.df.bothHeels_Filt, turnsRound2.heelstarts, len(turnsRound2.heelstarts), stepLen)
-meanHeelForce2 = np.mean(heelForceMat2, axis = 0)
-sdHeelForce2 = np.std(heelForceMat2, axis = 0)
-
-### Calculating heel force during toe turns ##
-heelForceToeTurn = forceMatrix(turnsRound1.df.bothHeels_Filt, turnsRound1.toestarts, len(turnsRound1.toestarts), stepLen)
-meanHeelForceTT = np.mean(heelForceToeTurn, axis = 0)
-sdHeelForceTT = np.std(heelForceToeTurn, axis = 0)
-
-heelForceToeTurn2 = forceMatrix(turnsRound2.df.bothHeels_Filt, turnsRound2.heelstarts, len(turnsRound2.toestarts), stepLen)
-meanHeelForceTT2 = np.mean(heelForceToeTurn, axis = 0)
-sdHeelForceTT2 = np.std(heelForceToeTurn, axis = 0)
 
 ### plotting ### 
 fig, (ax1, ax2) = plt.subplots(2)
-ax1.plot(x, meanToeForce, 'k', color='#DC582A')
-ax1.fill_between(x,meanToeForce-sdToeForce, meanToeForce+sdToeForce,
+ax1.plot(x, toeForceAvg.meanData, 'k', color='#DC582A')
+ax1.fill_between(x,toeForceAvg.meanData-toeForceAvg.sdData, toeForceAvg.meanData+toeForceAvg.sdData,
     alpha=0.5, edgecolor='#DC582A', facecolor='#DC582A', label = turnsRound1.config)
-ax1.plot(x, meanToeForce2, 'k', color='#00966C')
-ax1.fill_between(x,meanToeForce2-sdToeForce2, meanToeForce2+sdToeForce2,
+ax1.plot(x, toeForceAvg2.meanData, 'k', color='#00966C')
+ax1.fill_between(x,toeForceAvg2.meanData-toeForceAvg2.sdData, toeForceAvg2.meanData+toeForceAvg2.sdData,
     alpha=0.5, edgecolor='#00966C', facecolor='#00966C', label = turnsRound2.config)
 ax1.legend()
 ax1.set_title('Toe Turns')
 ax1.set_ylabel('Toe Force (N)')
-ax2.plot(x, meanHeelForce, 'k', color='#DC582A')
-ax2.fill_between(x,meanHeelForce-sdHeelForce, meanHeelForce+sdHeelForce,
+ax2.plot(x, heelForceAvg.meanData, 'k', color='#DC582A')
+ax2.fill_between(x,heelForceAvg.meanData-heelForceAvg.sdData, heelForceAvg.meanData+heelForceAvg.sdData,
     alpha=0.5, edgecolor='#DC582A', facecolor='#DC582A', label = turnsRound1.config)
-ax2.plot(x, meanHeelForce2, 'k', color='#00966C')
-ax2.fill_between(x,meanHeelForce2-sdHeelForce2, meanHeelForce2+sdHeelForce2,
+ax2.plot(x, heelForceAvg2.meanData, 'k', color='#00966C')
+ax2.fill_between(x,heelForceAvg2.meanData-heelForceAvg2.sdData, heelForceAvg2.meanData+heelForceAvg2.sdData,
     alpha=0.5, edgecolor='#00966C', facecolor='#00966C', label = turnsRound2.config)
 ax2.set_title('Heel Turns')
 ax2.legend()
@@ -346,11 +318,11 @@ ax2.set_ylabel('Heel Force (N)')
 
 
 fig2, ax3 = plt.subplots(1)
-ax3.plot(x, meanHeelForceTT, 'k', color='#DC582A')
-ax3.fill_between(x,meanHeelForceTT-sdHeelForceTT, meanHeelForceTT+sdHeelForceTT,
+ax3.plot(x, heelForceTT.meanData, 'k', color='#DC582A')
+ax3.fill_between(x,heelForceTT.meanData-heelForceTT.sdData, heelForceTT.meanData+heelForceTT.sdData,
     alpha=0.5, edgecolor='#DC582A', facecolor='#DC582A', label = turnsRound1.config)
-ax3.plot(x, meanHeelForce2, 'k', color='#00966C')
-ax3.fill_between(x,meanHeelForce2-sdToeForce2, meanToeForce2+sdToeForce2,
+ax3.plot(x, heelForceTT2.meanData, 'k', color='#00966C')
+ax3.fill_between(x,heelForceTT2.meanData-heelForceTT2.sdData, heelForceTT2.meanData+heelForceTT2.sdData,
     alpha=0.5, edgecolor='#00966C', facecolor='#00966C', label = turnsRound2.config)
 ax3.legend()
 ax3.set_title('Heel Force During Toe Turns')
