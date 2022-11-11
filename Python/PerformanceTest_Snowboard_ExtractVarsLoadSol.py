@@ -16,8 +16,6 @@ import scipy
 
 pd.options.mode.chained_assignment = None  # default='warn' set to warn for a lot of warnings
 save_on = 0
-TS_plots = 0 # turn on for time series plotting but not encouraged for running thru all files
-
 
 def findToeTurns(toeForce, heelForce):
     """
@@ -367,54 +365,3 @@ if save_on == 1:
     else:
         outcomes.to_csv(outfileName, mode='a', header=False, index = False)
 
-
-########## Plotting ############
-# preallocate matrix for force and fill in with force data
-def forceMatrix(inputForce, landings, noSteps, stepLength):
-    """
-    input a force signal, return matrix with n rows (for each landing) by m col
-    #for each point in stepLen
-    """
-    preForce = np.zeros((noSteps,stepLength))
-    
-    for iterVar, landing in enumerate(landings):
-        try:
-            preForce[iterVar,] = inputForce[landing:landing+stepLength]
-        except:
-            print(landing)
-            
-    return preForce
-    
-#TS_plots = 1
-if TS_plots == 1:
-    
-    stepLen = 400
-    x = np.linspace(0,stepLen,stepLen)
-    toeForceMat = forceMatrix(dat.bothToes_Filt, realToeStart, len(realToeStart), stepLen)
-    meanToeForce = np.mean(toeForceMat, axis = 0)
-    sdToeForce = np.std(toeForceMat, axis = 0)
-    
-    heelForceMat = forceMatrix(dat.bothHeels_Filt, realHeelStart, len(realHeelStart), stepLen)
-    meanHeelForce = np.mean(heelForceMat, axis = 0)
-    sdHeelForce = np.std(heelForceMat, axis = 0)
-    
-    fig, ((ax1, ax2), (ax3, ax4)) = plt.subplots(2,2)
-    ax1.plot(intp_strides(dat.bothToes_Filt, realToeStart, np.arange(0,len(realToeStart))))
-    ax1.set_title('Toe Turns')
-    ax1.set_ylabel('Force (N)')
-    ax3.plot(intp_strides(dat.bothHeels_Filt, realHeelStart, np.arange(0,len(realHeelStart))))
-    ax3.set_title('Heel Turns')
-    ax3.set_ylabel('Force (N)')
-    #fig2, (ax1, ax2) = plt.subplots(2)
-    ax2.plot(x,meanToeForce, 'k', color='#003D4C', label = 'Toe Force (N)')
-    ax2.fill_between(x,meanToeForce-sdToeForce, meanToeForce+sdToeForce,
-        alpha=0.5, edgecolor='#003D4C', facecolor='#003D4C')
-    #ax1.set_ylim([0,1500])
-    ax2.set_title('Toe Turns')
-    ax2.set_ylabel('Force (N)')
-    ax4.plot(x,meanHeelForce, 'k', color='#003D4C', label = 'Heel Force (N)')
-    ax4.fill_between(x,meanHeelForce-sdHeelForce, meanHeelForce+sdHeelForce,
-        alpha=0.5, edgecolor='#003D4C', facecolor='#003D4C')
-    #ax2.set_ylim([0,1500])
-    ax4.set_title('Heel Turns')
-    ax4.set_ylabel('Force (N)')
