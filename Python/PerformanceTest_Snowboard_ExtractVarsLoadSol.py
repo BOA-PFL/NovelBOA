@@ -12,12 +12,10 @@ from scipy import signal
 import os
 from tkinter.filedialog import askopenfilenames
 from tkinter import messagebox
+import scipy
 
 pd.options.mode.chained_assignment = None  # default='warn' set to warn for a lot of warnings
-
-# plt.plot(dat.bothToes_Filt, label = 'toes') 
-# plt.plot(dat.bothHeels_Filt, label = 'heels')
-# plt.legend()
+save_on = 0
 
 def findToeTurns(toeForce, heelForce):
     """
@@ -102,6 +100,38 @@ def makeVizPlot(inputDF, inputToeTurns, inputHeelTurns):
       color = 'k', label = 'Heel Turn Start', linewidth=3.0, ls='--')
     ax1.legend()       
     ax1.set_title('Heel Turns')
+    
+def intp_strides(var,landings,GS):
+    """
+    Function to interpolate the variable of interest across a stride
+    (from foot contact to subsiquent foot contact) in order to plot the 
+    variable of interest over top each other
+
+    Parameters
+    ----------
+    var : list or numpy array
+        Variable of interest. Can be taken from a dataframe or from a numpy array
+    landings : list
+        Foot contact indicies
+    GS: list 
+        Good strides that have been passed through the post-hoc filter process
+
+    Returns
+    -------
+    intp_var : numpy array
+        Interpolated variable to 101 points with the number of columns dictated
+        by the number of strides.
+
+    """
+    # Preallocate
+    intp_var = np.zeros((101,len(GS)-1))
+    # Index through the strides
+    for ii in range(len(GS)-1):
+        dum = var[landings[GS[ii]]:landings[GS[ii]+1]]
+        f = scipy.interpolate.interp1d(np.arange(0,len(dum)),dum)
+        intp_var[:,ii] = f(np.linspace(0,len(dum)-1,101))
+        
+    return intp_var
 
 # Read in files
 
@@ -325,13 +355,13 @@ outcomes = pd.DataFrame({'Subject':list(Subject), 'Config': list(Config), 'Trial
                          
                          })
 
-# outfileName = fPath + 'CompiledResults6.csv'
-
-# if os.path.exists(outfileName) == False:
+if save_on == 1:
+    outfileName = fPath + 'CompiledResults6.csv'
     
-#     outcomes.to_csv(outfileName, mode='a', header=True, index = False)
-
-# else:
-#     outcomes.to_csv(outfileName, mode='a', header=False, index = False)
-
+    if os.path.exists(outfileName) == False:
+        
+        outcomes.to_csv(outfileName, mode='a', header=True, index = False)
+    
+    else:
+        outcomes.to_csv(outfileName, mode='a', header=False, index = False)
 
