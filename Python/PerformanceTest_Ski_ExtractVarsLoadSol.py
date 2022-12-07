@@ -20,6 +20,14 @@ from tkinter.filedialog import askopenfilenames
 from tkinter import messagebox
 
 
+fPath = 'C:\\Users\\daniel.feeney\\Boa Technology Inc\\PFL Team - General\\Testing Segments\\Snow Performance\\Alpine_CuffOnSnow_Apr2022\\XSENSORdata\\'
+fPath = 'C:\\Users\\daniel.feeney\\Boa Technology Inc\\PFL Team - General\\Testing Segments\\Snow Performance\\SkiValidation_Dec2022\OnSnowPilot\\'
+fileExt = r".txt"
+entries = [fName for fName in os.listdir(fPath) if fName.endswith(fileExt)]
+#entries = askopenfilenames(initialdir = fPath)
+
+
+
 def findRightTurns(RForce, LForce):
     """
     Find start of right turns. Defined as when force on LEFT ski (i.e. downhill ski) 
@@ -109,11 +117,6 @@ def makeTurnPlot(inputDF, turnIndices, turnSide):
 
 #makeTurnPlot(dat, RTurns, 'Right')
 ## Example data lives in there and work well ## 
-
-fPath = 'C:\\Users\\daniel.feeney\\Boa Technology Inc\\PFL Team - General\\Testing Segments\\Snow Performance\\Alpine_CuffOnSnow_Apr2022\\XSENSORdata\\'
-fileExt = r".txt"
-entries = [fName for fName in os.listdir(fPath) if fName.endswith(fileExt)]
-#entries = askopenfilenames(initialdir = fPath)
 
 # Initiate discrete outcome variables
 OutsideFootForce = []

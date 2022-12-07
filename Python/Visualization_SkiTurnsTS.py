@@ -20,13 +20,14 @@ from dataclasses import dataclass
 # select files
 
 fPath = 'C:\\Users\\daniel.feeney\\Boa Technology Inc\\PFL Team - General\\Testing Segments\\Snow Performance\\Alpine_CuffOnSnow_Apr2022\\XSENSORdata\\'
+fPath = 'C:\\Users\\daniel.feeney\\Boa Technology Inc\\PFL Team - General\\Testing Segments\\Snow Performance\\SkiValidation_Dec2022\OnSnowPilot\\'
 fileExt = r".txt"
 entries = [fName for fName in os.listdir(fPath) if fName.endswith(fileExt)]
 entries = os.listdir(fPath)
 
 # Choose two files to compare
-fName1 = entries[2]
-fName2 = entries[3]
+fName1 = entries[0]
+fName2 = entries[1]
 
 stepLen = 400
 
