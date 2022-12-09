@@ -21,7 +21,7 @@ from tkinter import messagebox
 
 
 fPath = 'C:\\Users\\daniel.feeney\\Boa Technology Inc\\PFL Team - General\\Testing Segments\\Snow Performance\\Alpine_CuffOnSnow_Apr2022\\XSENSORdata\\'
-fPath = 'C:\\Users\\daniel.feeney\\Boa Technology Inc\\PFL Team - General\\Testing Segments\\Snow Performance\\SkiValidation_Dec2022\OnSnowPilot\\'
+fPath = 'C:/Users/milena.singletary/Boa Technology Inc/PFL Team - Documents/General/Testing Segments/Snow Performance/SkiValidation_Dec2022/OnSnowPilot/'
 fileExt = r".txt"
 entries = [fName for fName in os.listdir(fPath) if fName.endswith(fileExt)]
 #entries = askopenfilenames(initialdir = fPath)
@@ -122,8 +122,17 @@ def makeTurnPlot(inputDF, turnIndices, turnSide):
 OutsideFootForce = []
 OutsideFootMedialForce = []
 avgOutsideHeelStart = []
+
+absOutsideFootForce = []
+absOutsideFootMedialForce = []
+absavgOutsideHeelStart = []
+
 propHeelLate = []
 absPropHeelLate = []
+
+HeelLate = []
+absHeelLate = []
+
 cvForce = []
 lTurn = []
 sName = []
@@ -210,9 +219,14 @@ for fName in entries:
                     # EARLY TURN DH FORCE: Proportion of force on downhill foot. Higher is better
                     OutsideFootForce.append( dat.RTotal_Filt[pkIdx]/(dat.LTotal_Filt[pkIdx] + dat.RTotal_Filt[pkIdx]) )
                     # FOOT ROLL. Proportion of force on outside medial 
-                    OutsideFootMedialForce.append( dat.RMedial_Filt[pkIdx]/dat.RTotal_Filt[pkIdx] ) 
+                    OutsideFootMedialForce.append( dat.RMedial_Filt[pkIdx]/dat.RTotal_Filt[pkIdx] )
                     # FORWARD STANCE. Proportion of heel force during early turn
                     avgOutsideHeelStart.append( np.mean(dat.RHeel_Filt[value:pkIdx])/np.mean(dat.RTotal_Filt[value:pkIdx] )) 
+                    
+                    
+                    absOutsideFootForce.append(dat.RTotal_Filt[pkIdx])
+                    absOutsideFootMedialForce.append(dat.RMedial_Filt[pkIdx])
+                    absavgOutsideHeelStart.append(np.mean(dat.RHeel_Filt[value:pkIdx]))
                     
                     tmpHeel = dat["RHeel_Filt"].tolist()
                     tmpToes = dat.RMedial_Filt + dat.RLateral_Filt
@@ -221,6 +235,10 @@ for fName in entries:
                     pkOutsideHeelLate = np.max(dat.RHeel_Filt[pkIdx: LTurns[i+1]])
                     pkOutsideHeelLateIdx = tmpHeel.index(pkOutsideHeelLate) 
                     propHeelLate.append(( pkOutsideHeelLate - tmpToes[pkOutsideHeelLateIdx])/dat.RTotal_Filt[pkOutsideHeelLateIdx])
+                    
+                    HeelLate.append( pkOutsideHeelLate - tmpToes[pkOutsideHeelLateIdx])
+                    absHeelLate.append(abs(HeelLate[-1]))
+                    
                     # BALANCE - proportion of force on heel vs. toes late in turn (50% is ideal)
                     absPropHeelLate.append(abs(propHeelLate[-1])) 
                     lTurn.append('Left') 
@@ -241,7 +259,9 @@ for fName in entries:
 
 outcomes = pd.DataFrame({'Subject':list(sName),'Config':list(cName),'TurnType': list(lTurn),
                                  'OutsideFootForce':list(OutsideFootForce), 'OutsideFootMedialForce':list(OutsideFootMedialForce),'avgOutsideHeelStart':list(avgOutsideHeelStart),
-                                 'propHeelLate':list(propHeelLate), 'absPropHeelLate':list(absPropHeelLate)
+                                 'propHeelLate':list(propHeelLate), 'absPropHeelLate':list(absPropHeelLate),
+                                 'absOutsideFootForce':list(absOutsideFootForce), 'absOutsideFootMedialForce':list(absOutsideFootMedialForce), 
+                                 'absavgOutsideHeelStart':list(absavgOutsideHeelStart), 'HeelLate':list(HeelLate), 'absHeelLate':list(absHeelLate)
                                  })
          
   
