@@ -19,15 +19,15 @@ from dataclasses import dataclass
 
 # select files
 
-fPath = 'C:\\Users\\daniel.feeney\\Boa Technology Inc\\PFL Team - General\\Testing Segments\\Snow Performance\\SB_2DialTakeDown_Mar2022\\Forces\\'
-#fPath = 'C:\\Users\\daniel.feeney\\iCloudDrive\\iCloud~de~novel~loadsols\\'
+#fPath = 'C:\\Users\\daniel.feeney\\Boa Technology Inc\\PFL Team - General\\Testing Segments\\Snow Performance\\SB_2DialTakeDown_Mar2022\\Forces\\'
+fPath = 'C:\\Users\\daniel.feeney\\Boa Technology Inc\\PFL Team - General\\Testing Segments\\Snowboard Pilot2022\\BurtonTestDec22\\'
 fileExt = r".txt"
 entries = [fName for fName in os.listdir(fPath) if fName.endswith(fileExt)]
 entries = os.listdir(fPath)
 
 # Choose two files to compare
-fName1 = entries[1]
-fName2 = entries[3]
+fName1 = entries[0]
+fName2 = entries[2]
 
 stepLen = 400
 
@@ -299,32 +299,37 @@ heelForceTT2 = calcEnsembleData(turnsRound2.df.bothHeels_Filt, turnsRound2.toest
 ### plotting ### 
 fig, (ax1, ax2) = plt.subplots(2)
 ax1.plot(x, toeForceAvg.meanData, 'k', color='#DC582A')
-ax1.fill_between(x,toeForceAvg.meanData-toeForceAvg.sdData, toeForceAvg.meanData+toeForceAvg.sdData,
+ax1.fill_between(x,toeForceAvg.meanData-0.5*toeForceAvg.sdData, toeForceAvg.meanData+0.5*toeForceAvg.sdData,
     alpha=0.5, edgecolor='#DC582A', facecolor='#DC582A', label = turnsRound1.config)
 ax1.plot(x, toeForceAvg2.meanData, 'k', color='#00966C')
-ax1.fill_between(x,toeForceAvg2.meanData-toeForceAvg2.sdData, toeForceAvg2.meanData+toeForceAvg2.sdData,
+ax1.fill_between(x,toeForceAvg2.meanData-0.5*toeForceAvg2.sdData, toeForceAvg2.meanData+0.5*toeForceAvg2.sdData,
     alpha=0.5, edgecolor='#00966C', facecolor='#00966C', label = turnsRound2.config)
 ax1.legend()
 ax1.set_title('Toe Turns')
 ax1.set_ylabel('Toe Force (N)')
+ax1.set_xlabel('ms')
 ax2.plot(x, heelForceAvg.meanData, 'k', color='#DC582A')
-ax2.fill_between(x,heelForceAvg.meanData-heelForceAvg.sdData, heelForceAvg.meanData+heelForceAvg.sdData,
+ax2.fill_between(x,heelForceAvg.meanData-0.5*heelForceAvg.sdData, heelForceAvg.meanData+0.5*heelForceAvg.sdData,
     alpha=0.5, edgecolor='#DC582A', facecolor='#DC582A', label = turnsRound1.config)
 ax2.plot(x, heelForceAvg2.meanData, 'k', color='#00966C')
-ax2.fill_between(x,heelForceAvg2.meanData-heelForceAvg2.sdData, heelForceAvg2.meanData+heelForceAvg2.sdData,
+ax2.fill_between(x,heelForceAvg2.meanData-0.5*heelForceAvg2.sdData, heelForceAvg2.meanData+0.5*heelForceAvg2.sdData,
     alpha=0.5, edgecolor='#00966C', facecolor='#00966C', label = turnsRound2.config)
 ax2.set_title('Heel Turns')
 ax2.legend()
 ax2.set_ylabel('Heel Force (N)')
+ax2.set_xlabel('ms')
+plt.tight_layout()
 
 
 fig2, ax3 = plt.subplots(1)
 ax3.plot(x, heelForceTT.meanData, 'k', color='#DC582A')
-ax3.fill_between(x,heelForceTT.meanData-heelForceTT.sdData, heelForceTT.meanData+heelForceTT.sdData,
+ax3.fill_between(x,heelForceTT.meanData-0.5*heelForceTT.sdData, heelForceTT.meanData+0.5*heelForceTT.sdData,
     alpha=0.5, edgecolor='#DC582A', facecolor='#DC582A', label = turnsRound1.config)
 ax3.plot(x, heelForceTT2.meanData, 'k', color='#00966C')
-ax3.fill_between(x,heelForceTT2.meanData-heelForceTT2.sdData, heelForceTT2.meanData+heelForceTT2.sdData,
+ax3.fill_between(x,heelForceTT2.meanData-0.5*heelForceTT2.sdData, heelForceTT2.meanData+0.5*heelForceTT2.sdData,
     alpha=0.5, edgecolor='#00966C', facecolor='#00966C', label = turnsRound2.config)
 ax3.legend()
 ax3.set_title('Heel Force During Toe Turns')
 ax3.set_ylabel('Heel Force (N)')
+ax3.set_xlabel('ms')
+plt.tight_layout()

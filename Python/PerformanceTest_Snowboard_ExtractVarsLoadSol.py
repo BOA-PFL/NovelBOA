@@ -14,8 +14,15 @@ from tkinter.filedialog import askopenfilenames
 from tkinter import messagebox
 import scipy
 
+# Read in files
+
+fPath = 'C:\\Users\\daniel.feeney\\Boa Technology Inc\\PFL Team - General\\Testing Segments\\Snowboard Pilot2022\\BurtonTestDec22\\'
+fileExt = r".txt"
+entries = [fName for fName in os.listdir(fPath) if fName.endswith(fileExt)]
+entries = os.listdir(fPath)
+
 pd.options.mode.chained_assignment = None  # default='warn' set to warn for a lot of warnings
-save_on = 0
+save_on = 1
 
 def findToeTurns(toeForce, heelForce):
     """
@@ -133,12 +140,7 @@ def intp_strides(var,landings,GS):
         
     return intp_var
 
-# Read in files
 
-fPath = 'C:\\Users\\daniel.feeney\\Boa Technology Inc\\PFL Team - General\\Testing Segments\\Snow Performance\\SB_2DialTakeDown_Mar2022\\Forces\\'
-fileExt = r".txt"
-entries = [fName for fName in os.listdir(fPath) if fName.endswith(fileExt)]
-entries = os.listdir(fPath)
 # Select files for a single subject
 #entries = askopenfilenames(initialdir = fPath)
 
@@ -169,6 +171,8 @@ noPeaks_FrontToe = []
 peakProminence_FrontToe = []
 noPeaks_RearToe = []
 peakProminence_RearToe = []
+absHeelContact_BothToes = []
+absHeelContactSD_BothToes = []
 
 badFileList = []
 
@@ -273,19 +277,6 @@ for fName in entries:
                 ### Loop through toe turns to extract variables. 
                 
                 try:
-                    # #i = 1
-                    # ### Time Series
-            
-                    toeTurns_FrontHeel.append(dat.FrontHeel[realToeStart[i]:realToeStart[i] + 100])
-                    toeTurns_FrontToes.append(dat.FrontToes[realToeStart[i]:realToeStart[i] + 100])
-                    toeTurns_RearHeel.append(dat.RearHeel[realToeStart[i]:realToeStart[i] + 100])
-                    toeTurns_RearToes.append(dat.RearToes[realToeStart[i]:realToeStart[i] + 100])
-                    heelTurns_FrontHeel.append(dat.FrontHeel[realHeelStart[i]:realHeelStart[i] + 100])
-                    heelTurns_FrontToes.append(dat.FrontToes[realHeelStart[i]:realHeelStart[i] + 100])
-                    heelTurns_RearHeel.append(dat.RearHeel[realHeelStart[i]:realHeelStart[i] + 100])
-                    heelTurns_RearToes.append(dat.RearToes[realHeelStart[i]:realHeelStart[i] + 100])
-            
-            
                     ### Toe Turns
                 
                     maxToeF_BothToes.append(np.max(dat.bothToes_Filt[realToeStart[i]:realToeStart[i]+100])/np.max(dat.Total_Filt[realToeStart[i]:realToeStart[i]+100]))
@@ -319,6 +310,15 @@ for fName in entries:
                         meanHeelContact_BothToes.append((np.mean(dat.bothHeels_Filt[realToeStart[i]:realToeStart[i]+100]))/np.mean(dat.Total_Filt[realToeStart[i]:realToeStart[i]+100]))
                     except:
                         meanHeelContact_BothToes.append('nan')
+                    
+                    try:
+                        absHeelContact_BothToes.append((np.mean(dat.bothHeels_Filt[realToeStart[i]:realToeStart[i]+100])))
+                    except:
+                        absHeelContact_BothToes.append('nan')
+                    try:
+                        absHeelContactSD_BothToes.append((np.std(dat.bothHeels_Filt[realToeStart[i]:realToeStart[i]+100])))
+                    except:
+                        absHeelContactSD_BothToes.append('nan')
                         
                         
                     peaks = signal.find_peaks(dat.FrontHeel[realToeStart[i]:realToeStart[i]+100])[0]
@@ -351,12 +351,13 @@ outcomes = pd.DataFrame({'Subject':list(Subject), 'Config': list(Config), 'Trial
                          'maxToeRFDup_BothToes':list(maxToeRFDup_BothToes), 'maxToeRFDdn_BothToes':list(maxToeRFDdn_BothToes), 'maxTotalRFDup_BothToes':list(maxTotalRFDup_BothToes), 'maxTotalRFDdn_BothToes':list(maxTotalRFDdn_BothToes), 
                          'timeToToePeak_BothtToes':list(timeToToePeak_BothToes), 'timeToTotalPeak_BothToes':list(timeToTotalPeak_BothToes),
                          'avgToeRFD_BothToes':list(avgToeRFD_BothToes), 'avgTotalRFD_BothToes':list(avgTotalRFD_BothToes),
-                         'meanHeelContact_BothToes':list(meanHeelContact_BothToes)
+                         'meanHeelContact_BothToes':list(meanHeelContact_BothToes), 'absHeelContactSD_BothToes':list(absHeelContactSD_BothToes),
+                         'absHeelContact_BothToes':list(absHeelContact_BothToes)
                          
                          })
 
 if save_on == 1:
-    outfileName = fPath + 'CompiledResults6.csv'
+    outfileName = fPath + 'CompiledResults5.csv'
     
     if os.path.exists(outfileName) == False:
         
