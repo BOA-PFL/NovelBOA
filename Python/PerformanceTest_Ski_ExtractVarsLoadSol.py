@@ -47,7 +47,7 @@ def findRightTurns(RForce, LForce):
     """
     RTurns = []
     for step in range(len(RForce)-1):
-        if LForce[step] <= RForce[step] and LForce[step + 1] > RForce[step + 1] and np.mean(LForce[step:step+200] > np.mean(RForce[step:step+200])):
+        if LForce[step] <= RForce[step] and LForce[step + 1] > RForce[step + 1] and np.mean(LForce[step:step+200]) > np.mean(RForce[step:step+200]):
             RTurns.append(step)
     return RTurns
 

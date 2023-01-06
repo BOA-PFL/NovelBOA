@@ -48,7 +48,7 @@ def findRightTurns(RForce, LForce):
     """
     RTurns = []
     for step in range(len(RForce)-1):
-        if LForce[step] <= RForce[step] and LForce[step + 1] > RForce[step + 1] and np.mean(LForce[step:step+200] > np.mean(RForce[step:step+200])):
+        if LForce[step] <= RForce[step] and LForce[step + 1] > RForce[step + 1] and np.mean(LForce[step:step+200]) > np.mean(RForce[step:step+200]):
             RTurns.append(step)
     return RTurns
 
@@ -204,7 +204,7 @@ for i, value in enumerate(RTurns):
 
     if i < len(RTurns) - 2:
     # index of peak turn. saved for later in case we want to use it
-        pkIdx = np.argmax(dat.RTotal_Filt[LTurns[i]:LTurns[i+1]])
+        pkIdx = np.argmax(dat.LTotal_Filt[RTurns[i]:RTurns[i+1]])
         pkIdx = value + pkIdx
         ## Extract relevent parameters from a turn here ##
         peakLForce.append(np.max(dat.LTotal_Filt[RTurns[i]:RTurns[i+1]]))
