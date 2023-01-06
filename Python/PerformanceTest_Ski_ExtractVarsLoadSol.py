@@ -114,8 +114,6 @@ def makeTurnPlot(inputDF, turnIndices, turnSide):
     plt.legend()
     plt.title(turnSide)
 
-#makeTurnPlot(dat, RTurns, 'Right')
-## Example data lives in there and work well ## 
 
 # Initiate discrete outcome variables
 OutsideFootProp = []
@@ -187,6 +185,7 @@ for fName in entries:
         LTurns = cleanTurns(LTurns)
         
         makeTurnPlot(dat, LTurns, 'Left Turns')
+        makeTurnPlot(dat, RTurns, 'Right Turns')
         answer = messagebox.askyesno("Question","Is data clean?")
         
         if answer == False:
@@ -254,28 +253,30 @@ for fName in entries:
     
                 try:
                     
-                    pkIdx = np.argmax(dat.RTotal_Filt[LTurns[i]:LTurns[i+1]])
+                    pkIdx = np.argmax(dat.LTotal_Filt[LTurns[i]:LTurns[i+1]])
                     pkIdx = value + pkIdx
                     timeToPeak.append(pkIdx - value)
                     RFD.append((dat.LTotal_Filt[pkIdx] - dat.LTotal_Filt[value]) / (pkIdx - value))
 
                     ## Extract relevent parameters from a turn here ##
                     # EARLY TURN DH FORCE: Proportion of force on downhill foot. Higher is better
-                    OutsideFootProp.append( dat.RTotal_Filt[pkIdx]/(dat.LTotal_Filt[pkIdx] + dat.RTotal_Filt[pkIdx]) )
-                    OutsideFootForce.append( dat.RTotal_Filt[pkIdx] )
+                    OutsideFootProp.append( dat.LTotal_Filt[pkIdx]/(dat.LTotal_Filt[pkIdx] + dat.RTotal_Filt[pkIdx]) )
+                    OutsideFootForce.append( dat.LTotal_Filt[pkIdx] )
                     # FOOT ROLL. Proportion or total of force on outside medial 
-                    OutsideFootMedialProp.append( dat.RMedial_Filt[pkIdx]/dat.RTotal_Filt[pkIdx] ) 
-                    OutsideFootMedialForce.append( dat.RMedial_Filt[pkIdx] )
+                    OutsideFootMedialProp.append( dat.LMedial_Filt[pkIdx]/dat.LTotal_Filt[pkIdx] ) 
+                    OutsideFootMedialForce.append( dat.LMedial_Filt[pkIdx] )
                     # FORWARD STANCE. Proportion of heel force during early turn
-                    avgOutsideHeelStartProp.append( np.mean(dat.RHeel_Filt[value:pkIdx])/np.mean(dat.RTotal_Filt[value:pkIdx] )) 
+                    avgOutsideHeelStartProp.append( np.mean(dat.LHeel_Filt[value:pkIdx])/np.mean(dat.LTotal_Filt[value:pkIdx] )) 
                     # heel force should be lower at initial start
-                    avgOutsideHeelStartForce.append( np.mean(dat.RHeel_Filt[value:pkIdx]) )
+                    avgOutsideHeelStartForce.append( np.mean(dat.LHeel_Filt[value:pkIdx]) )
+                    # heel force should be higher by end
+                    #avgOutsideHeelEndForce.append( np.mean(dat.LHeel_Filt[pkIdx:pkIdx+50]) )
                     turnSide.append('Right') 
                     sName.append(subName)
                     cName.append(configName)
                     
-                    tmpHeel = dat["RHeel_Filt"].tolist()
-                    tmpToes = dat.RMedial_Filt + dat.RLateral_Filt
+                    tmpHeel = dat["LHeel_Filt"].tolist()
+                    tmpToes = dat.LMedial_Filt + dat.LLateral_Filt
                     tmpToes = tmpToes.tolist()
                     
                     #More work needed to figure out heel force before we can analyze
@@ -301,7 +302,7 @@ outcomes = pd.DataFrame({'Subject':list(sName),'Config':list(cName),'TurnType': 
                                  })
          
   
-outfileName = fPath + 'CompiledResults2.csv'
+outfileName = fPath + 'CompiledResultsTest.csv'
 
 if os.path.exists(outfileName) == False:
     
