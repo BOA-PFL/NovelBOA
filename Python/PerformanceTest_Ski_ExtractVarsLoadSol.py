@@ -126,10 +126,12 @@ avgOutsideHeelStartForce = []
 avgOutsideHeelStartProp = []
 propHeelLate = []
 absPropHeelLate = []
+RFD = []
 cvForce = []
 turnSide = []
 sName = []
 cName = []
+timeToPeak = []
 badFileList = []
 
 for fName in entries:
@@ -210,6 +212,8 @@ for fName in entries:
                     
                     pkIdx = np.argmax(dat.RTotal_Filt[LTurns[i]:LTurns[i+1]])
                     pkIdx = value + pkIdx
+                    timeToPeak.append(pkIdx - value)
+                    RFD.append((dat.RTotal_Filt[pkIdx] - dat.RTotal_Filt[value]) / (pkIdx - value))
                     
                     ## Extract relevent parameters from a turn here ##
                     # EARLY TURN DH FORCE: Proportion of force on downhill foot. Higher is better
@@ -252,7 +256,9 @@ for fName in entries:
                     
                     pkIdx = np.argmax(dat.RTotal_Filt[LTurns[i]:LTurns[i+1]])
                     pkIdx = value + pkIdx
-                    
+                    timeToPeak.append(pkIdx - value)
+                    RFD.append((dat.LTotal_Filt[pkIdx] - dat.LTotal_Filt[value]) / (pkIdx - value))
+
                     ## Extract relevent parameters from a turn here ##
                     # EARLY TURN DH FORCE: Proportion of force on downhill foot. Higher is better
                     OutsideFootProp.append( dat.RTotal_Filt[pkIdx]/(dat.LTotal_Filt[pkIdx] + dat.RTotal_Filt[pkIdx]) )
