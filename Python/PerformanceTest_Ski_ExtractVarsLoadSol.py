@@ -167,9 +167,9 @@ for fName in entries:
         dat = dat.reset_index()
         
         fs = 100 
-        fc = 2
+        fc = 6
         w = fc / (fs / 2)
-        b, a = signal.butter(4, w, 'low')
+        b, a = signal.butter(2, w, 'low')
         dat['LTotal_Filt'] = signal.filtfilt(b, a, dat.LTotal)
         dat['RTotal_Filt'] = signal.filtfilt(b, a, dat.RTotal)
         dat['RMedial_Filt'] = signal.filtfilt(b, a, dat.RMedial)
