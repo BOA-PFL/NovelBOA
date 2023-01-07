@@ -153,17 +153,27 @@ for fName in entries:
         
         
         
-        ### Subset the trial to a portion that does not include standing ###
-        fig, ax = plt.subplots()
-        ax.plot(dat.LTotal, label = 'Left Total Force')
-        ax.plot(dat.RTotal, label = 'Right Total Force')
-        fig.legend()
-        print('Select start and end of analysis trial')
-        pts = np.asarray(plt.ginput(2, timeout=-1))
-        plt.close()
-        # downselect the region of the dataframe you selected from above 
-        dat = dat.iloc[int(np.floor(pts[0,0])) : int(np.floor(pts[1,0])),:]
-        dat = dat.reset_index()
+        # Load in the trial segmentation variable if it is in the directory
+        if os.path.exists(fPath+fName+'TrialSeg.npy') == True:
+            trial_segment_old = np.load(fPath+fName+'TrialSeg.npy',allow_pickle=True)
+            trialStart = trial_segment_old[1][0,0]
+            trialEnd = trial_segment_old[1][1,0]
+            dat = dat.iloc[int(np.floor(trialStart)) : int(np.floor(trialEnd)),:]
+            dat = dat.reset_index()
+            
+        else:
+                
+            ### Subset the trial to a portion that does not include standing ###
+            fig, ax = plt.subplots()
+            ax.plot(dat.LTotal, label = 'Left Total Force')
+            ax.plot(dat.RTotal, label = 'Right Total Force')
+            fig.legend()
+            print('Select start and end of analysis trial')
+            pts = np.asarray(plt.ginput(2, timeout=-1))
+            plt.close()
+            # downselect the region of the dataframe you selected from above 
+            dat = dat.iloc[int(np.floor(pts[0,0])) : int(np.floor(pts[1,0])),:]
+            dat = dat.reset_index()
         
         fs = 100 
         fc = 6
