@@ -16,16 +16,13 @@ import numpy as np
 import matplotlib.pyplot as plt
 import os
 from scipy import signal
-from tkinter.filedialog import askopenfilenames
+from tkinter.filedialog import askopenfilename
 from tkinter import messagebox
 
 
-fPath = 'C:\\Users\\daniel.feeney\\Boa Technology Inc\\PFL Team - General\\Testing Segments\\Snow Performance\\SkiValidation_Dec2022\OnSnowPilot\\'
+fPath = 'C:\\Users\\daniel.feeney\\Boa Technology Inc\\PFL Team - General\\Testing Segments\\Snow Performance\\SkiValidation_Dec2022\Loadsol\\'
 fileExt = r".txt"
-entries = [fName for fName in os.listdir(fPath) if fName.endswith(fileExt)]
-fName = entries[2]
-#entries = askopenfilenames(initialdir = fPath)
-
+fName = askopenfilename(initialdir = fPath)
 
 
 def findRightTurns(RForce, LForce):
@@ -114,6 +111,7 @@ def makeTurnPlot(inputDF, turnIndices, turnSide):
               color = 'k', label = turnSide, linewidth=3.0, ls='--')
     plt.legend()
     plt.title(turnSide)
+    plt.suptitle(subName)
 
 #makeTurnPlot(dat, RTurns, 'Right')
 ## Example data lives in there and work well ## 
@@ -125,7 +123,7 @@ peakLForce = []
 
 # Loop through files and use time series force data to identify turns
 #fName = entries[2]
-dat = pd.read_csv(fPath+fName, sep = '	',skiprows = 3, header = 0, index_col = False)
+dat = pd.read_csv(fName, sep = '	',skiprows = 3, header = 0, index_col = False)
 dat.columns = ['Time', 'LHeel', 'LMedial','LLateral','LTotal', 'Time2', 
        'RLateral','RMedial','RHeel','RTotal', 'time2','accX','axxY','accZ','pass']
 
@@ -139,22 +137,34 @@ configName = info.split(sep = "_")[1]
 dat['LToes'] = dat.LMedial + dat.LLateral
 dat['RToes'] = dat.RMedial + dat.RLateral
 
+trimName = fName.split('/')[-1].split('.')[0]
 
+# modify the default parameters of np.load
 
-### Subset the trial to a portion that does not include standing ###
-fig, ax = plt.subplots()
-ax.plot(dat.LTotal, label = 'Left Total Force')
-ax.plot(dat.RTotal, label = 'Right Total Force')
-fig.legend()
-print('Select start and end of analysis trial')
-pts = np.asarray(plt.ginput(2, timeout=-1))
-plt.close()
-# downselect the region of the dataframe you selected from above 
-dat = dat.iloc[int(np.floor(pts[0,0])) : int(np.floor(pts[1,0])),:]
-dat = dat.reset_index()
+# Load in the trial segmentation variable if it is in the directory
+if os.path.exists(fPath+trimName+'TrialSeg.npy') == True:
+    trial_segment_old = np.load(fPath+trimName+'TrialSeg.npy',allow_pickle=True)
+    trialStart = trial_segment_old[1][0,0]
+    trialEnd = trial_segment_old[1][1,0]
+    dat = dat.iloc[int(np.floor(trialStart)) : int(np.floor(trialEnd)),:]
+    dat = dat.reset_index()
+    
+else:
+        
+    ### Subset the trial to a portion that does not include standing ###
+    fig, ax = plt.subplots()
+    ax.plot(dat.LTotal, label = 'Left Total Force')
+    ax.plot(dat.RTotal, label = 'Right Total Force')
+    fig.legend()
+    print('Select start and end of analysis trial')
+    pts = np.asarray(plt.ginput(2, timeout=-1))
+    plt.close()
+    # downselect the region of the dataframe you selected from above 
+    dat = dat.iloc[int(np.floor(pts[0,0])) : int(np.floor(pts[1,0])),:]
+    dat = dat.reset_index()
 
 fs = 100 
-fc = 2
+fc = 6
 w = fc / (fs / 2)
 b, a = signal.butter(4, w, 'low')
 dat['LTotal_Filt'] = signal.filtfilt(b, a, dat.LTotal)
@@ -174,6 +184,7 @@ RTurns = cleanTurns(RTurns)
 LTurns = cleanTurns(LTurns)
 
 makeTurnPlot(dat, LTurns, 'Left Turns')
+makeTurnPlot(dat, RTurns, 'Reft Turns')
 answer = messagebox.askyesno("Question","Is data clean?")
 
 if answer == False:
@@ -247,3 +258,7 @@ ax.set_ylabel('Force (N)')
 variab = ('Left', 'Right')
 plt.tight_layout()
 plt.show()
+
+# Save the trial segmentation
+trial_segment = np.array([trimName,pts])
+np.save(fPath+trimName+'TrialSeg.npy',trial_segment)

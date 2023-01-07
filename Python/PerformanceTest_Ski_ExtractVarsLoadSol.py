@@ -113,6 +113,7 @@ def makeTurnPlot(inputDF, turnIndices, turnSide):
               color = 'k', label = turnSide, linewidth=3.0, ls='--')
     plt.legend()
     plt.title(turnSide)
+    plt.suptitle(subName)
 
 
 # Initiate discrete outcome variables
