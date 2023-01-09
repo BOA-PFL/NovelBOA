@@ -14,17 +14,17 @@ from scipy.signal import find_peaks
 
 # Read in files
 # only read .asc files for this work
-fPath = 'C:/Users/Daniel.Feeney/Dropbox (Boa)/Snow Protocol/InLabPressures/NovelData/'
+fPath = 'C:\\Users\\daniel.feeney\\Boa Technology Inc\\PFL Team - General\\Testing Segments\\Snow_Alpine_Pilot\\InLabPressures\\NovelData/'
 fileExt = r".asc"
 entries = [fName for fName in os.listdir(fPath) if fName.endswith(fileExt)]
 
 # Import data. Hard coded for now
 # All values are pressure in kPa
-BOAfile = entries[11]
+BOAfile = entries[0]
 boa = pd.read_csv(fPath+BOAfile, delim_whitespace=True, skiprows = 9, header = 0)
 boa = boa.iloc[:,100:199]
 
-Bucklefile = entries[13]
+Bucklefile = entries[1]
 buckle = pd.read_csv(fPath+Bucklefile, delim_whitespace=True, skiprows = 9, header = 0)
 buckle = buckle.iloc[:,100:199]
 
