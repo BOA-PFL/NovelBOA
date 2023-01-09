@@ -152,10 +152,10 @@ for fName in entries:
         dat['RToes'] = dat.RMedial + dat.RLateral
         
         
-        
+        shortFName = fName.split('.')[0]
         # Load in the trial segmentation variable if it is in the directory
-        if os.path.exists(fPath+fName+'TrialSeg.npy') == True:
-            trial_segment_old = np.load(fPath+fName+'TrialSeg.npy',allow_pickle=True)
+        if os.path.exists(fPath+shortFName+'TrialSeg.npy') == True:
+            trial_segment_old = np.load(fPath+shortFName+'TrialSeg.npy',allow_pickle=True)
             trialStart = trial_segment_old[1][0,0]
             trialEnd = trial_segment_old[1][1,0]
             dat = dat.iloc[int(np.floor(trialStart)) : int(np.floor(trialEnd)),:]
