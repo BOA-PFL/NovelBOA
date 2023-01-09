@@ -23,6 +23,7 @@ from tkinter import messagebox
 fPath = 'C:\\Users\\daniel.feeney\\Boa Technology Inc\\PFL Team - General\\Testing Segments\\Snow Performance\\\SkiValidation_Dec2022\Loadsol\\'
 fileExt = r".txt"
 entries = [fName for fName in os.listdir(fPath) if fName.endswith(fileExt)]
+check_data = 0
 #entries = askopenfilenames(initialdir = fPath)
 
 
@@ -160,6 +161,7 @@ for fName in entries:
             trialEnd = trial_segment_old[1][1,0]
             dat = dat.iloc[int(np.floor(trialStart)) : int(np.floor(trialEnd)),:]
             dat = dat.reset_index()
+
             
         else:
                 
@@ -174,6 +176,9 @@ for fName in entries:
             # downselect the region of the dataframe you selected from above 
             dat = dat.iloc[int(np.floor(pts[0,0])) : int(np.floor(pts[1,0])),:]
             dat = dat.reset_index()
+            # Save the trial segmentation
+            trial_segment = np.array([shortFName,pts])
+            np.save(fPath+shortFName+'TrialSeg.npy',trial_segment)
         
         fs = 100 
         fc = 6
@@ -195,15 +200,18 @@ for fName in entries:
         RTurns = cleanTurns(RTurns)
         LTurns = cleanTurns(LTurns)
         
-        makeTurnPlot(dat, LTurns, 'Left Turns')
-        makeTurnPlot(dat, RTurns, 'Right Turns')
-        answer = messagebox.askyesno("Question","Is data clean?")
-        
-        if answer == False:
-            plt.close('all')
-            print('Adding file to bad file list')
-            badFileList.append(fName)
-        
+        if check_data == 1:
+            makeTurnPlot(dat, LTurns, 'Left Turns')
+            makeTurnPlot(dat, RTurns, 'Right Turns')
+            answer = messagebox.askyesno("Question","Is data clean?")
+            
+            if answer == False:
+                plt.close('all')
+                print('Adding file to bad file list')
+                badFileList.append(fName)
+        else:
+            answer = True
+            
         if answer == True:
             plt.close('all')
             print('Estimating point estimates')
@@ -222,9 +230,9 @@ for fName in entries:
                     
                     pkIdx = np.argmax(dat.RTotal_Filt[LTurns[i]:LTurns[i+1]])
                     pkIdx = value + pkIdx
-                    timeToPeak.append(pkIdx - value)
-                    RFD.append((dat.RTotal_Filt[pkIdx] - dat.RTotal_Filt[value]) / (pkIdx - value))
                     
+                    RFD.append((dat.RTotal_Filt[pkIdx] - dat.RTotal_Filt[value]) / (pkIdx - value))
+                    timeToPeak.append(pkIdx - value)
                     ## Extract relevent parameters from a turn here ##
                     # EARLY TURN DH FORCE: Proportion of force on downhill foot. Higher is better
                     OutsideFootProp.append( dat.RTotal_Filt[pkIdx]/(dat.LTotal_Filt[pkIdx] + dat.RTotal_Filt[pkIdx]) )
@@ -266,13 +274,14 @@ for fName in entries:
                     
                     pkIdx = np.argmax(dat.LTotal_Filt[LTurns[i]:LTurns[i+1]])
                     pkIdx = value + pkIdx
-                    timeToPeak.append(pkIdx - value)
-                    RFD.append((dat.LTotal_Filt[pkIdx] - dat.LTotal_Filt[value]) / (pkIdx - value))
+                    
+                    RFD.append( ((dat.LTotal_Filt[pkIdx] - dat.LTotal_Filt[value]) / (pkIdx - value)) * 100 )
 
                     ## Extract relevent parameters from a turn here ##
                     # EARLY TURN DH FORCE: Proportion of force on downhill foot. Higher is better
                     OutsideFootProp.append( dat.LTotal_Filt[pkIdx]/(dat.LTotal_Filt[pkIdx] + dat.RTotal_Filt[pkIdx]) )
                     OutsideFootForce.append( dat.LTotal_Filt[pkIdx] )
+                    timeToPeak.append(pkIdx - value)
                     # FOOT ROLL. Proportion or total of force on outside medial 
                     OutsideFootMedialProp.append( dat.LMedial_Filt[pkIdx]/dat.LTotal_Filt[pkIdx] ) 
                     OutsideFootMedialForce.append( dat.LMedial_Filt[pkIdx] )
@@ -309,11 +318,12 @@ for fName in entries:
 
 outcomes = pd.DataFrame({'Subject':list(sName),'Config':list(cName),'TurnType': list(turnSide),
                                  'OutsideFootForce':list(OutsideFootForce), 'OutsideFootMedialForce':list(OutsideFootMedialForce),'OutsideFootProp':list(OutsideFootProp),
-                                 'avgOutsideHeelStartForce':list(avgOutsideHeelStartForce),'OutsideFootMedialProp':list(OutsideFootMedialProp)
+                                 'avgOutsideHeelStartForce':list(avgOutsideHeelStartForce),'OutsideFootMedialProp':list(OutsideFootMedialProp), 'timeToPeak':list(timeToPeak),
+                                 'RFD':list(RFD)
                                  })
          
   
-outfileName = fPath + 'CompiledResultsTest.csv'
+outfileName = fPath + 'CompiledResultsTest2.csv'
 
 if os.path.exists(outfileName) == False:
     
