@@ -17,6 +17,7 @@ import matplotlib.pyplot as plt
 import os
 import scipy.signal as sig
 from scipy import signal
+import addcopyfighandler
 from tkinter.filedialog import askopenfilename
 from tkinter import messagebox
 
@@ -211,12 +212,13 @@ for i, value in enumerate(Rpeaks):
 # Loop through all cleaned turns to calculate discrete outcome measures.
 # using right side only (left turns) first
     ## Extract relevent parameters from a turn here ##
-    peakRForce.append(np.nanmax(dat.RTotal_Filt[value-100:value+100]))
+    peakRForce.append(np.nanmax(dat.RTotal_Filt[value-100:value+100])*0.225) # Convert to lbs
     
 for i, value in enumerate(Lpeaks):
 # Loop through all cleaned turns to calculate discrete outcome measures.
 # using right side only (left turns) first
-    peakLForce.append(np.nanmax(dat.LTotal_Filt[value-100:value+100]))
+    peakLForce.append(np.nanmax(dat.LTotal_Filt[value-100:value+100])*0.225) # Convert to lbs
+
 
 SMALL_SIZE = 14
 MEDIUM_SIZE = 16
@@ -235,6 +237,8 @@ bar_colors = ['tab:blue','tab:red']
 rightAvgForce = np.mean(peakRForce)
 leftAvgForce = np.mean(peakLForce)
 
+print("Average Peak Turning Force:", round(np.mean(peakRForce+peakLForce)))
+
 pctDiff = abs(100 * ((rightAvgForce - leftAvgForce) / ( (rightAvgForce+leftAvgForce) / 2)))
 if rightAvgForce > leftAvgForce:
     print("Skier has ", round(pctDiff), " % greater force on right foot (left turns with right foot downhill are stronger")
@@ -250,7 +254,7 @@ error = [np.std(peakLForce), np.std(peakRForce)]
 ax.bar(variab, performance,yerr=error, color = bar_colors)
 ax.set_xlabel('Side')
 ax.set_title('Peak Force During Turn')
-ax.set_ylabel('Force (N)')
+ax.set_ylabel('Force (lbs)')
 variab = ('Left', 'Right')
 plt.tight_layout()
 plt.show()
