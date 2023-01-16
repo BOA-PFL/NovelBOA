@@ -15,77 +15,85 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import os
+import scipy.signal as sig
 from scipy import signal
 from tkinter.filedialog import askopenfilename
 from tkinter import messagebox
 
 
-fPath = 'C:\\Users\\daniel.feeney\\Boa Technology Inc\\PFL Team - General\\Testing Segments\\Snow Performance\\SkiValidation_Dec2022\Loadsol\\'
+fPath = 'C:\\Users\\eric.honert\\Boa Technology Inc\\PFL Team - General\\Testing Segments\\Snow Performance\\SkiValidation_Dec2022\Loadsol\\'
 fileExt = r".txt"
 fName = askopenfilename(initialdir = fPath)
 
 
-def findRightTurns(RForce, LForce):
+def EnsureTurnsAlternate(turndet1,turndet2,peaks1,peaks2):
     """
-    Find start of right turns. Defined as when force on LEFT ski (i.e. downhill ski) 
-    exceeds force on right ski.
+    This function takes 2 signals that alternate (such as left and right) with
+    events that have been detected within those signals. It makes sure that the
+    detected events (or peaks) oscillates between the two signals. If there are
+    multiple events detected between events from the other signal, the event
+    with the highest peak will be kept and the others eliminated.
 
     Parameters
     ----------
-    RForce : Pandas Column
-        Time series of force data under right foot.
-    LForce : Pandas Column
-        Time series of force data under left foot. 
+    turndet1 : numpy array
+        Signal associated with the detected peaks from peaks1
+    turndet2 : numpy array
+        Signal associated with the detected peaks from peaks2
+    peaks1 : numpy array
+        Peaks detected from the function "find_peaks" (scipy library) from turndet1
+    peaks2 : numpy array
+        Peaks detected from the function "find_peaks" (scipy library) from turndet2
 
     Returns
     -------
-    RTurns : List
-        Index of frames where right turns started. 
+    peaks1 : numpy array
+        Cleaned peaks1 that oscillates with peaks2
+    peaks2 : numpy array
+        Cleaned peaks1 that oscillates with peaks1
 
     """
-    RTurns = []
-    for step in range(len(RForce)-1):
-        if LForce[step] <= RForce[step] and LForce[step + 1] > RForce[step + 1] and np.mean(LForce[step:step+200]) > np.mean(RForce[step:step+200]):
-            RTurns.append(step)
-    return RTurns
-
-def findLeftTurns(RForce, LForce):
-    """
-    Find start of left turns. Defined as when force on RIGHT ski 
-    (i.e. downhill ski) exceeds for on the left ski.
-
-    Parameters
-    ----------
-    RForce : Pandas Column
-        Time series of force data under the right foot. 
-    LForce : Pandas Column
-        Time series of force data under the left foot. 
-
-    Returns
-    -------
-    LTurns : list
-        Index of frames where left turns started. 
-
-    """
-    LTurns = []
-    for step in range(len(RForce)-1):
-        if RForce[step] <= LForce[step] and RForce[step + 1] > LForce[step + 1] and np.mean(RForce[step:step+200]) > np.mean(LForce[step:step+200]) :
-            LTurns.append(step)
-    return LTurns
-
-
-
-def cleanTurns(turnIndices):
-    """
-    Finds if there are two turn initiations from the same foot close together
-    and removes the first one
-    """
-    lowThreshold = np.median(np.diff(turnIndices)) * 0.5
-    trueIndices = [idx for idx, x in enumerate(list(np.diff(turnIndices))) if x < lowThreshold]
+    # If the are multiple detected peaks after the last turn detection
+    if peaks1[-2] > peaks2[-1]:
+        idx_multiple = np.where(peaks1>peaks2[-1])[0]
+        idx = np.argmax(turndet1[peaks1[idx_multiple]])
+        # Remove the other detected peaks
+        idx_remove = np.delete(idx_multiple,idx)
+        peaks1 = np.delete(peaks1,idx_remove)
     
-    cleanList = [x for idx, x in enumerate(turnIndices) if idx not in trueIndices]
+    if peaks2[-2] > peaks1[-1]:
+        idx_multiple = np.where(peaks2>peaks1[-1])[0]
+        idx = np.argmax(turndet2[peaks2[idx_multiple]])
+        # Remove the other detected peaks
+        idx_remove = np.delete(idx_multiple,idx)
+        peaks2 = np.delete(peaks2,idx_remove)
     
-    return(cleanList)
+    # Ensure that the entire signal oscillates between peaks1 and peaks2
+    jj = 0
+    while jj <= len(peaks2)-2:
+        if peaks1[jj] < peaks2[jj] and peaks1[jj+1] > peaks2 [jj] and peaks1[jj+1] < peaks2 [jj+1]:
+            # A normal turn
+            jj = jj+1
+        else:
+            if peaks2[jj+1] < peaks1[jj+1]:
+                # Multiple detected peaks from the following signal before a peak from the leading signal
+                idx_multiple = np.where((peaks2>peaks1[jj])*(peaks2<peaks1[jj+1])==True)[0]
+                # Figure out which of multiple peaks is higher
+                idx = np.argmax(turndet2[peaks2[idx_multiple]])
+                # Remove the other detected peaks
+                idx_remove = np.delete(idx_multiple,idx)
+                peaks2 = np.delete(peaks2,idx_remove)
+            else:
+                # Multiple detected peaks from the leading signal before a peak from the following signal
+                if jj == 0:
+                    idx_multiple = np.where(peaks1<peaks2[jj])[0]  
+                else:
+                    idx_multiple = np.where((peaks1>peaks2[jj-1])*(peaks1<peaks2[jj])==True)[0]    
+                idx = np.argmax(turndet1[peaks1[idx_multiple]])
+                # Remove the other detected peaks
+                idx_remove = np.delete(idx_multiple,idx)
+                peaks1 = np.delete(peaks1,idx_remove)
+    return(peaks1,peaks2)
 
 
 def makeTurnPlot(inputDF, turnIndices, turnSide):
@@ -176,51 +184,39 @@ dat['LLateral_Filt'] = signal.filtfilt(b, a, dat.LLateral)
 dat['LHeel_Filt'] = signal.filtfilt(b, a, dat.LHeel)
 dat['RHeel_Filt'] = signal.filtfilt(b, a, dat.RHeel)
 
+# Turn detection
+fs = 100 
+fc = 0.5
+w = fc / (fs / 2)
+b, a = signal.butter(2, w, 'low')
+
+Lturn_detect = signal.filtfilt(b, a, dat.LTotal)
+Rturn_detect = signal.filtfilt(b, a, dat.RTotal)
+
+Lpeaks,_ = sig.find_peaks(Lturn_detect, prominence=25)
+Rpeaks,_ = sig.find_peaks(Rturn_detect, prominence=25)
+
+        
+# Clean up the turn detection: ensure they oscillate
+if Lpeaks[0] < Rpeaks[0]:
+    Lpeaks, Rpeaks = EnsureTurnsAlternate(Lturn_detect,Rturn_detect,Lpeaks,Rpeaks)
+
+elif Lpeaks[0] > Rpeaks[0]:
+    Rpeaks, Lpeaks = EnsureTurnsAlternate(Rturn_detect,Lturn_detect,Rpeaks,Lpeaks)
    
-RTurns = findRightTurns(dat.RTotal_Filt, dat.LTotal_Filt)
-LTurns = findLeftTurns(dat.RTotal_Filt, dat.LTotal_Filt)
-
-RTurns = cleanTurns(RTurns)
-LTurns = cleanTurns(LTurns)
-
-makeTurnPlot(dat, LTurns, 'Left Turns')
-makeTurnPlot(dat, RTurns, 'Reft Turns')
-answer = messagebox.askyesno("Question","Is data clean?")
-
-if answer == False:
-    plt.close('all')
-    print('Adding file to bad file list')
-
-if answer == True:
-    plt.close('all')
-    print('Estimating point estimates')
 
 
-for i, value in enumerate(LTurns):
+
+for i, value in enumerate(Rpeaks):
 # Loop through all cleaned turns to calculate discrete outcome measures.
 # using right side only (left turns) first
-
-    if i < len(LTurns) - 2:
-        # index of peak turn. saved for later in case we want to use it
-        pkIdx = np.argmax(dat.RTotal_Filt[LTurns[i]:LTurns[i+1]])
-        pkIdx = value + pkIdx
-        ## Extract relevent parameters from a turn here ##
-        peakRForce.append(np.max(dat.RTotal_Filt[LTurns[i]:LTurns[i+1]]))
+    ## Extract relevent parameters from a turn here ##
+    peakRForce.append(np.max(dat.RTotal_Filt[value-100:value+100]))
     
-
-    
-for i, value in enumerate(RTurns):
+for i, value in enumerate(Lpeaks):
 # Loop through all cleaned turns to calculate discrete outcome measures.
 # using right side only (left turns) first
-
-    if i < len(RTurns) - 2:
-    # index of peak turn. saved for later in case we want to use it
-        pkIdx = np.argmax(dat.LTotal_Filt[RTurns[i]:RTurns[i+1]])
-        pkIdx = value + pkIdx
-        ## Extract relevent parameters from a turn here ##
-        peakLForce.append(np.max(dat.LTotal_Filt[RTurns[i]:RTurns[i+1]]))
-
-
+    peakLForce.append(np.max(dat.LTotal_Filt[value-100:value+100]))
 
 SMALL_SIZE = 14
 MEDIUM_SIZE = 16
@@ -259,6 +255,7 @@ variab = ('Left', 'Right')
 plt.tight_layout()
 plt.show()
 
-# Save the trial segmentation
-trial_segment = np.array([trimName,pts])
-np.save(fPath+trimName+'TrialSeg.npy',trial_segment)
+if os.path.exists(fPath+trimName+'TrialSeg.npy') == False:
+    # Save the trial segmentation
+    trial_segment = np.array([trimName,pts])
+    np.save(fPath+trimName+'TrialSeg.npy',trial_segment)
