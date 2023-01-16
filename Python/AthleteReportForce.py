@@ -211,12 +211,12 @@ for i, value in enumerate(Rpeaks):
 # Loop through all cleaned turns to calculate discrete outcome measures.
 # using right side only (left turns) first
     ## Extract relevent parameters from a turn here ##
-    peakRForce.append(np.max(dat.RTotal_Filt[value-100:value+100]))
+    peakRForce.append(np.nanmax(dat.RTotal_Filt[value-100:value+100]))
     
 for i, value in enumerate(Lpeaks):
 # Loop through all cleaned turns to calculate discrete outcome measures.
 # using right side only (left turns) first
-    peakLForce.append(np.max(dat.LTotal_Filt[value-100:value+100]))
+    peakLForce.append(np.nanmax(dat.LTotal_Filt[value-100:value+100]))
 
 SMALL_SIZE = 14
 MEDIUM_SIZE = 16
