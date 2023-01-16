@@ -322,7 +322,7 @@ for ii in range(0,len(entries)):
     
                 try:
                     # Look at a 200 frame window for the true max force
-                    OutsideFootForce.append(np.max(dat.LTotal_Filt[value-100:value+100]))
+                    OutsideFootForce.append(np.nanmax(dat.LTotal_Filt[value-100:value+100]))
                     Side.append('L')
                     sName.append(subName)
                     cName.append(configName)
@@ -369,7 +369,7 @@ for ii in range(0,len(entries)):
     
                 try:
                     # Look at a 200 frame window for the true max force
-                    OutsideFootForce.append(np.max(dat.RTotal_Filt[value-100:value+100]))
+                    OutsideFootForce.append(np.nanmax(dat.RTotal_Filt[value-100:value+100]))
                     Side.append('R')
                     sName.append(subName)
                     cName.append(configName)

@@ -213,7 +213,6 @@ for i, value in enumerate(Rpeaks):
 # using right side only (left turns) first
     ## Extract relevent parameters from a turn here ##
     peakRForce.append(np.nanmax(dat.RTotal_Filt[value-100:value+100])*0.225) # Convert to lbs
-
     
 for i, value in enumerate(Lpeaks):
 # Loop through all cleaned turns to calculate discrete outcome measures.
