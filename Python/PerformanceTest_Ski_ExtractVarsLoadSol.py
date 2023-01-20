@@ -25,6 +25,7 @@ fPath = 'C:\\Users\\eric.honert\\Boa Technology Inc\\PFL Team - General\\Testing
 fileExt = r".txt"
 entries = [fName for fName in os.listdir(fPath) if fName.endswith(fileExt)]
 check_data = 0
+freq = 100
 #entries = askopenfilenames(initialdir = fPath)
 
 
@@ -188,6 +189,27 @@ def EnsureTurnsAlternate(turndet1,turndet2,peaks1,peaks2):
 
 
 # Initiate discrete outcome variables
+OutTotMaxForce = []
+OutMedMaxForce = []
+OutLatMaxForce = []
+OutHeelMaxForce = []
+OutToeMaxForce = []
+OutTotAvgForce = []
+
+OutMedFracImpulse = []
+OutLatFracImpulse = []
+OutToeFracImpulse = []
+OutHeelFracImpulse = []
+OutToeFracImpulseEarly = []
+OutHeelFracImpulseLate = []
+
+RFD = []
+RFDtime = []
+
+InsTotMinForce = []
+
+
+
 OutsideFootProp = []
 OutsideFootForce = []
 OutsideFootMedialProp = []
@@ -196,11 +218,12 @@ avgOutsideHeelStartForce = []
 avgOutsideHeelStartProp = []
 propHeelLate = []
 absPropHeelLate = []
-RFD = []
+
 cvForce = []
-turnSide = []
+
 sName = []
 cName = []
+TurnDir = []
 Side = []
 timeToPeak = []
 badFileList = []
@@ -234,8 +257,6 @@ for ii in range(0,len(entries)):
             trialEnd = trial_segment_old[1][1,0]
             dat = dat.iloc[int(np.floor(trialStart)) : int(np.floor(trialEnd)),:]
             dat = dat.reset_index()
-
-            
         else:
                 
             ### Subset the trial to a portion that does not include standing ###
@@ -265,6 +286,24 @@ for ii in range(0,len(entries)):
         dat['LLateral_Filt'] = signal.filtfilt(b, a, dat.LLateral)
         dat['LHeel_Filt'] = signal.filtfilt(b, a, dat.LHeel)
         dat['RHeel_Filt'] = signal.filtfilt(b, a, dat.RHeel)
+        
+        dat['RToe_Filt'] = dat.RMedial_Filt + dat.RLateral_Filt
+        dat['LToe_Filt'] = dat.LMedial_Filt + dat.LLateral_Filt
+        
+        # plt.figure(ii)
+        # plt.subplot(1,2,1)
+        # plt.plot(dat.LMedial_Filt)
+        # plt.plot(dat.LLateral_Filt)
+        # plt.plot(dat.LHeel_Filt)
+        # plt.legend(['Medial','Lateral','Heel'])
+        
+        # plt.subplot(1,2,2)
+        # plt.plot(dat.RMedial_Filt)
+        # plt.plot(dat.RLateral_Filt)
+        # plt.plot(dat.RHeel_Filt)
+        # plt.legend(['Medial','Lateral','Heel'])
+        
+        # plt.close()
         
         # Turn detection
         fs = 100 
@@ -322,8 +361,65 @@ for ii in range(0,len(entries)):
     
                 try:
                     # Look at a 200 frame window for the true max force
-                    OutsideFootForce.append(np.nanmax(dat.LTotal_Filt[value-100:value+100]))
-                    Side.append('L')
+                    # Look at the Outside (or downhill) ski
+                    if value < 100:
+                        window = value
+                    else:
+                        window = 100
+                    
+                    OutTotMaxForce.append(np.nanmax(dat.LTotal_Filt[value-window:value+window]))
+                    OutMedMaxForce.append(np.nanmax(dat.LMedial_Filt[value-window:value+window]))
+                    OutLatMaxForce.append(np.nanmax(dat.LLateral_Filt[value-window:value+window]))
+                    OutToeMaxForce.append(np.nanmax(dat.LToe_Filt[value-window:value+window]))
+                    OutHeelMaxForce.append(np.nanmax(dat.LHeel_Filt[value-window:value+window]))
+                    
+                    # Look at the Inside (or uphill) ski
+                    InsTotMinForce.append(np.nanmax(dat.RTotal_Filt[value-window:value+window]))
+                    
+                    # Examine a 0.5 second window around the peak of the turn
+                    # for fraction of force  exerted on the foot of the outside (downhill) ski
+                    TotImpulse = sum(dat.LTotal_Filt[value-25:value+25])
+                    OutMedFracImpulse.append(sum(dat.LMedial_Filt[value-25:value+25])/TotImpulse)
+                    OutLatFracImpulse.append(sum(dat.LLateral_Filt[value-25:value+25])/TotImpulse)
+                    OutToeFracImpulse.append(sum(dat.LToe_Filt[value-25:value+25])/TotImpulse)
+                    OutHeelFracImpulse.append(sum(dat.LHeel_Filt[value-25:value+25])/TotImpulse)
+                    
+                    if jj < len(Lpeaks)-1:
+                        # Proportion of the force on the Posterior Portion during
+                        # the end of the turn (last 25%)
+                        idx_max = np.argmax(dat.LTotal_Filt[value-window:value+window])+value-window
+                        idx_nextmin = np.argmin(dat.LTotal_Filt[idx_max:Lpeaks[jj+1]])+idx_max
+                        
+                        idx75 = round(0.5*(idx_nextmin-idx_max))+idx_max
+                        OutHeelFracImpulseLate.append(sum(dat.LHeel_Filt[idx75:idx_nextmin])/sum(dat.LTotal_Filt[idx75:idx_nextmin]))
+                    else:
+                        OutHeelFracImpulseLate.append(np.nan)
+                        
+                    if jj>0:
+                        # Rate of force development
+                        # Find the index of the true local maxima
+                        idx_max = np.argmax(dat.LTotal_Filt[value-window:value+window])+value-window
+                        idx_min = np.argmin(dat.LTotal_Filt[Lpeaks[jj-1]:idx_max])+Lpeaks[jj-1]
+                        RFD.append(np.mean(np.gradient(dat.LTotal_Filt[idx_min:idx_max],1/freq)))
+                        RFDtime.append((idx_max-idx_min)/freq)
+                        
+                        # Proportion of the force on the Anterior Portion during
+                        # The start of the turn (first 25%)
+                        idx25 = round(0.5*(idx_max-idx_min))+idx_min
+                        OutToeFracImpulseEarly.append(sum(dat.LToe_Filt[idx_min:idx25])/sum(dat.LTotal_Filt[idx_min:idx25]))
+                        
+                    else:
+                        RFD.append(np.nan)
+                        RFDtime.append(np.nan)
+                        OutToeFracImpulseEarly.append(np.nan)
+                        
+                    
+                    if jj>0 and jj < len(Lpeaks)-1:
+                        OutTotAvgForce.append(np.mean(dat.LTotal_Filt[idx_min:idx_nextmin]))
+                    else:
+                        OutTotAvgForce.append(np.nan)
+                        
+                    TurnDir.append('R')
                     sName.append(subName)
                     cName.append(configName)
                     
@@ -368,9 +464,63 @@ for ii in range(0,len(entries)):
                 # Outside heel force lower is better with an average higher force on forefoot Tricky**
     
                 try:
+                    if value < 100:
+                        window = value
+                    else:
+                        window = 100
                     # Look at a 200 frame window for the true max force
-                    OutsideFootForce.append(np.nanmax(dat.RTotal_Filt[value-100:value+100]))
-                    Side.append('R')
+                    OutTotMaxForce.append(np.nanmax(dat.RTotal_Filt[value-window:value+window]))
+                    OutMedMaxForce.append(np.nanmax(dat.RMedial_Filt[value-window:value+window]))
+                    OutLatMaxForce.append(np.nanmax(dat.RLateral_Filt[value-window:value+window]))
+                    OutToeMaxForce.append(np.nanmax(dat.RToe_Filt[value-window:value+window]))
+                    OutHeelMaxForce.append(np.nanmax(dat.RHeel_Filt[value-window:value+window]))
+                    
+                    # Look at the Inside (or uphill) ski
+                    InsTotMinForce.append(np.nanmax(dat.LTotal_Filt[value-window:value+window]))
+                    
+                    # Examine a 0.5 second window around the peak of the turn
+                    # for fraction of force  exerted on the foot of the outside (downhill) ski
+                    TotImpulse = sum(dat.RTotal_Filt[value-25:value+25])
+                    OutMedFracImpulse.append(sum(dat.RMedial_Filt[value-25:value+25])/TotImpulse)
+                    OutLatFracImpulse.append(sum(dat.RLateral_Filt[value-25:value+25])/TotImpulse)
+                    OutToeFracImpulse.append(sum(dat.RToe_Filt[value-25:value+25])/TotImpulse)
+                    OutHeelFracImpulse.append(sum(dat.RHeel_Filt[value-25:value+25])/TotImpulse)
+                    
+                    if jj < len(Rpeaks)-1:
+                        # Proportion of the force on the Posterior Portion during
+                        # the end of the turn (last 25%)
+                        idx_max = np.argmax(dat.RTotal_Filt[value-window:value+window])+value-window
+                        idx_nextmin = np.argmin(dat.RTotal_Filt[idx_max:Rpeaks[jj+1]])+idx_max
+                        
+                        idx75 = round(0.5*(idx_nextmin-idx_max))+idx_max
+                        OutHeelFracImpulseLate.append(sum(dat.RHeel_Filt[idx75:idx_nextmin])/sum(dat.RTotal_Filt[idx75:idx_nextmin]))
+                    else:
+                        OutHeelFracImpulseLate.append(np.nan)
+                    
+                    # Rate of force development
+                    if jj>0:
+                        # Find the index of the true local maxima
+                        idx_max = np.argmax(dat.RTotal_Filt[value-window:value+window])+value-window
+                        idx_min = np.argmin(dat.RTotal_Filt[Rpeaks[jj-1]:idx_max])+Rpeaks[jj-1]
+                        RFD.append(np.mean(np.gradient(dat.RTotal_Filt[idx_min:idx_max],1/freq)))
+                        RFDtime.append((idx_max-idx_min)/freq)
+                        
+                        # Proportion of the force on the Anterior Portion during
+                        # The start of the turn (first 25%)
+                        idx25 = round(0.5*(idx_max-idx_min))+idx_min
+                        OutToeFracImpulseEarly.append(sum(dat.RToe_Filt[idx_min:idx25])/sum(dat.RTotal_Filt[idx_min:idx25]))
+                        
+                    else:
+                        RFD.append(np.nan)
+                        RFDtime.append(np.nan)
+                        OutToeFracImpulseEarly.append(np.nan)
+                    
+                    if jj>0 and jj < len(Rpeaks)-1:
+                        OutTotAvgForce.append(np.mean(dat.RTotal_Filt[idx_min:idx_nextmin]))
+                    else:
+                        OutTotAvgForce.append(np.nan)
+
+                    TurnDir.append('L')
                     sName.append(subName)
                     cName.append(configName)
                     
@@ -417,8 +567,14 @@ for ii in range(0,len(entries)):
 # Create data frame with all outcome measures and export to csv. Will create a new csv if one does not exist for this dataset. 
 # Otherwise will append.
 
-outcomes = pd.DataFrame({'Subject':list(sName),'Config':list(cName),'Side': list(Side),
-                                 'OutsideFootForce':list(OutsideFootForce)
+outcomes = pd.DataFrame({'Subject':list(sName),'Config':list(cName),'TurnDir': list(TurnDir),
+                                 'OutTotMaxForce':list(OutTotMaxForce), 'OutMedMaxForce':list(OutMedMaxForce),
+                                 'OutLatMaxForce':list(OutLatMaxForce), 'OutHeelMaxForce':list(OutHeelMaxForce),
+                                 'OutToeMaxForce':list(OutToeMaxForce), 'OutMedFracImpulse':list(OutMedFracImpulse),
+                                 'OutLatFracImpulse':list(OutLatFracImpulse), 'OutToeFracImpulse':list(OutToeFracImpulse),
+                                 'OutHeelFracImpulse':list(OutHeelFracImpulse), 'RFD':list(RFD), 'RFDtime':list(RFDtime),
+                                 'OutHeelFracImpulseLate': list(OutHeelFracImpulseLate), 'OutToeFracImpulseEarly': list(OutToeFracImpulseEarly),
+                                 'OutTotAvgForce': list(OutTotAvgForce)
                                  })
 
 # outcomes = pd.DataFrame({'Subject':list(sName),'Config':list(cName),'Side': list(Side),
