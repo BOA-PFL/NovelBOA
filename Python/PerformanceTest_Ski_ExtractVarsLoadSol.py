@@ -21,7 +21,7 @@ import addcopyfighandler
 from tkinter.filedialog import askopenfilenames
 from tkinter import messagebox
 
-fPath = 'C:\\Users\\eric.honert\\Boa Technology Inc\\PFL Team - General\\Testing Segments\\Snow Performance\\\SkiValidation_Dec2022\Loadsol\\'
+fPath = 'C:\\Users\\daniel.feeney\\Boa Technology Inc\\PFL Team - General\\Testing Segments\\Snow Performance\\\SkiValidation_Dec2022\Loadsol\\'
 fileExt = r".txt"
 entries = [fName for fName in os.listdir(fPath) if fName.endswith(fileExt)]
 check_data = 0
@@ -584,13 +584,13 @@ outcomes = pd.DataFrame({'Subject':list(sName),'Config':list(cName),'TurnDir': l
 #                                  })
          
   
-# outfileName = fPath + 'CompiledResultsTest2.csv'
+outfileName = fPath + 'CompiledResultsTest2.csv'
 
-# if os.path.exists(outfileName) == False:
+if os.path.exists(outfileName) == False:
     
-#     outcomes.to_csv(outfileName, mode='a', header=True, index = False)
+    outcomes.to_csv(outfileName, mode='a', header=True, index = False)
 
-# else:
-#     outcomes.to_csv(outfileName, mode='a', header=False, index = False) 
+else:
+    outcomes.to_csv(outfileName, mode='a', header=False, index = False) 
 
 
