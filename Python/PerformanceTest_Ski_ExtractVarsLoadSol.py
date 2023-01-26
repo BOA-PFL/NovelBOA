@@ -227,10 +227,11 @@ TurnDir = []
 Side = []
 timeToPeak = []
 badFileList = []
+trialNo = []
 
-for ii in range(0,len(entries)):
+for ii, entry in enumerate(entries):
     # try:
-        fName = entries[ii]
+        fName = entry
         print(fName)
         # Loop through files and use time series force data to identify turns
         #fName = entries[2]
@@ -240,10 +241,10 @@ for ii in range(0,len(entries)):
         
         #dat.columns = ['Time','RHeel','RLateral','RMedial','RTotal','Time2','se','ei','ni','te']
         #use above if one side only
-        info = fName.split(sep = "/")[-1]
-        
-        subName = info.split(sep = "_")[0]
-        configName = info.split(sep = "_")[1]
+                
+        subName = fName.split(sep = "_")[0]
+        configName = fName.split(sep = "_")[1]
+        trialNoTmp = fName.split(sep = "_")[2].split(sep=".")[0]
         
         dat['LToes'] = dat.LMedial + dat.LLateral
         dat['RToes'] = dat.RMedial + dat.RLateral
