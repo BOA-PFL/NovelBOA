@@ -230,8 +230,8 @@ timeToPeak = []
 badFileList = []
 trialNo = []
 
-for ii, entry in enumerate(entries[64:-1]):
-    # try:
+for ii, entry in enumerate(entries):
+    try:
         fName = entry
         print(fName)
         # Loop through files and use time series force data to identify turns
@@ -502,8 +502,7 @@ for ii, entry in enumerate(entries[64:-1]):
                     
                 except Exception as e: print(e)
                         
-    # except:
-    #     print(fName)
+    except Exception as e: print(e)
 
 
 # Create data frame with all outcome measures and export to csv. Will create a new csv if one does not exist for this dataset. 
@@ -521,7 +520,7 @@ outcomes = pd.DataFrame({'Subject':list(sName),'Config':list(cName),'TurnDir': l
 
          
   
-outfileName = fPath + 'CompiledResultsTest2.csv'
+outfileName = fPath + 'CompiledResultsTest3.csv'
 
 if save_on == 1:
     if os.path.exists(outfileName) == False:
