@@ -21,11 +21,12 @@ import addcopyfighandler
 from tkinter.filedialog import askopenfilenames
 from tkinter import messagebox
 
-fPath = 'C:\\Users\\eric.honert\\Boa Technology Inc\\PFL Team - General\\Testing Segments\\Snow Performance\\\SkiValidation_Dec2022\Loadsol\\'
+fPath = 'C:\\Users\\daniel.feeney\\Boa Technology Inc\\PFL Team - General\\Testing Segments\\Snow Performance\\\SkiValidation_Dec2022\Loadsol\\'
 fileExt = r".txt"
 entries = [fName for fName in os.listdir(fPath) if fName.endswith(fileExt)]
-check_data = 0
+check_data = 1
 freq = 100
+save_on = 1
 #entries = askopenfilenames(initialdir = fPath)
 
 
@@ -227,10 +228,11 @@ TurnDir = []
 Side = []
 timeToPeak = []
 badFileList = []
+trialNo = []
 
-for ii in range(0,len(entries)):
-    # try:
-        fName = entries[ii]
+for ii, entry in enumerate(entries):
+    try:
+        fName = entry
         print(fName)
         # Loop through files and use time series force data to identify turns
         #fName = entries[2]
@@ -240,10 +242,10 @@ for ii in range(0,len(entries)):
         
         #dat.columns = ['Time','RHeel','RLateral','RMedial','RTotal','Time2','se','ei','ni','te']
         #use above if one side only
-        info = fName.split(sep = "/")[-1]
-        
-        subName = info.split(sep = "_")[0]
-        configName = info.split(sep = "_")[1]
+                
+        subName = fName.split(sep = "_")[0]
+        configName = fName.split(sep = "_")[1]
+        trialNoTmp = fName.split(sep = "_")[2].split(sep=".")[0]
         
         dat['LToes'] = dat.LMedial + dat.LLateral
         dat['RToes'] = dat.RMedial + dat.RLateral
@@ -422,35 +424,8 @@ for ii in range(0,len(entries)):
                     TurnDir.append('R')
                     sName.append(subName)
                     cName.append(configName)
+                    trialNo.append(trialNoTmp)
                     
-        #             pkIdx = np.argmax(dat.RTotal_Filt[LTurns[i]:LTurns[i+1]])
-        #             pkIdx = value + pkIdx
-                    
-        #             RFD.append((dat.RTotal_Filt[pkIdx] - dat.RTotal_Filt[value]) / (pkIdx - value))
-        #             timeToPeak.append(pkIdx - value)
-        #             ## Extract relevent parameters from a turn here ##
-        #             # EARLY TURN DH FORCE: Proportion of force on downhill foot. Higher is better
-        #             OutsideFootProp.append( dat.RTotal_Filt[pkIdx]/(dat.LTotal_Filt[pkIdx] + dat.RTotal_Filt[pkIdx]) )
-        #             OutsideFootForce.append( dat.RTotal_Filt[pkIdx] )
-        #             # FOOT ROLL. Proportion or total of force on outside medial 
-        #             OutsideFootMedialProp.append( dat.RMedial_Filt[pkIdx]/dat.RTotal_Filt[pkIdx] ) 
-        #             OutsideFootMedialForce.append( dat.RMedial_Filt[pkIdx] )
-        #             # FORWARD STANCE. Proportion of heel force during early turn
-        #             avgOutsideHeelStartProp.append( np.mean(dat.RHeel_Filt[value:pkIdx])/np.mean(dat.RTotal_Filt[value:pkIdx] )) 
-        #             avgOutsideHeelStartForce.append( np.mean(dat.RHeel_Filt[value:pkIdx]) )
-                                        
-        #             turnSide.append('Left')
-        #             # tmpHeel = dat["RHeel_Filt"].tolist()
-        #             # tmpToes = dat.RMedial_Filt + dat.RLateral_Filt
-        #             # tmpToes = tmpToes.tolist()
-                    
-        #             # #More work needed to figure out heel force before we can analyze
-        #             # pkOutsideHeelLate = np.max(dat.RHeel_Filt[pkIdx: LTurns[i+1]])
-        #             # pkOutsideHeelLateIdx = tmpHeel.index(pkOutsideHeelLate) 
-        #             # propHeelLate.append(( pkOutsideHeelLate - tmpToes[pkOutsideHeelLateIdx])/dat.RTotal_Filt[pkOutsideHeelLateIdx])
-        #             # # BALANCE - proportion of force on heel vs. toes late in turn (50% is target)
-        #             # absPropHeelLate.append(abs(propHeelLate[-1])) 
-
                     
                 except Exception as e: print(e)
                     
@@ -523,51 +498,17 @@ for ii in range(0,len(entries)):
                     TurnDir.append('L')
                     sName.append(subName)
                     cName.append(configName)
-                    
-        #             pkIdx = np.argmax(dat.LTotal_Filt[LTurns[i]:LTurns[i+1]])
-        #             pkIdx = value + pkIdx
-                    
-        #             RFD.append( ((dat.LTotal_Filt[pkIdx] - dat.LTotal_Filt[value]) / (pkIdx - value)) * 100 )
-
-        #             ## Extract relevent parameters from a turn here ##
-        #             # EARLY TURN DH FORCE: Proportion of force on downhill foot. Higher is better
-        #             OutsideFootProp.append( dat.LTotal_Filt[pkIdx]/(dat.LTotal_Filt[pkIdx] + dat.RTotal_Filt[pkIdx]) )
-        #             OutsideFootForce.append( dat.LTotal_Filt[pkIdx] )
-        #             timeToPeak.append(pkIdx - value)
-        #             # FOOT ROLL. Proportion or total of force on outside medial 
-        #             OutsideFootMedialProp.append( dat.LMedial_Filt[pkIdx]/dat.LTotal_Filt[pkIdx] ) 
-        #             OutsideFootMedialForce.append( dat.LMedial_Filt[pkIdx] )
-        #             # FORWARD STANCE. Proportion of heel force during early turn
-        #             avgOutsideHeelStartProp.append( np.mean(dat.LHeel_Filt[value:pkIdx])/np.mean(dat.LTotal_Filt[value:pkIdx] )) 
-        #             # heel force should be lower at initial start
-        #             avgOutsideHeelStartForce.append( np.mean(dat.LHeel_Filt[value:pkIdx]) )
-        #             # heel force should be higher by end
-        #             #avgOutsideHeelEndForce.append( np.mean(dat.LHeel_Filt[pkIdx:pkIdx+50]) )
-        #             turnSide.append('Right') 
-
-                    
-        #             tmpHeel = dat["LHeel_Filt"].tolist()
-        #             tmpToes = dat.LMedial_Filt + dat.LLateral_Filt
-        #             tmpToes = tmpToes.tolist()
-                    
-        #             #More work needed to figure out heel force before we can analyze
-        #             # pkOutsideHeelLate = np.max(dat.RHeel_Filt[pkIdx: LTurns[i+1]])
-        #             # pkOutsideHeelLateIdx = tmpHeel.index(pkOutsideHeelLate) 
-        #             # propHeelLate.append(( pkOutsideHeelLate - tmpToes[pkOutsideHeelLateIdx])/dat.RTotal_Filt[pkOutsideHeelLateIdx])
-        #             # # BALANCE - proportion of force on heel vs. toes late in turn (50% is ideal)
-        #             # absPropHeelLate.append(abs(propHeelLate[-1])) 
-
+                    trialNo.append(trialNoTmp)
                     
                 except Exception as e: print(e)
                         
-    # except:
-    #     print(fName)
+    except Exception as e: print(e)
 
 
 # Create data frame with all outcome measures and export to csv. Will create a new csv if one does not exist for this dataset. 
 # Otherwise will append.
 
-outcomes = pd.DataFrame({'Subject':list(sName),'Config':list(cName),'TurnDir': list(TurnDir),
+outcomes = pd.DataFrame({'Subject':list(sName),'Config':list(cName),'TurnDir': list(TurnDir), 'TrialNo':list(trialNo),
                                  'OutTotMaxForce':list(OutTotMaxForce), 'OutMedMaxForce':list(OutMedMaxForce),
                                  'OutLatMaxForce':list(OutLatMaxForce), 'OutHeelMaxForce':list(OutHeelMaxForce),
                                  'OutToeMaxForce':list(OutToeMaxForce), 'OutMedFracImpulse':list(OutMedFracImpulse),
@@ -577,20 +518,18 @@ outcomes = pd.DataFrame({'Subject':list(sName),'Config':list(cName),'TurnDir': l
                                  'OutTotAvgForce': list(OutTotAvgForce)
                                  })
 
-# outcomes = pd.DataFrame({'Subject':list(sName),'Config':list(cName),'Side': list(Side),
-#                                  'OutsideFootForce':list(OutsideFootForce), 'OutsideFootMedialForce':list(OutsideFootMedialForce),'OutsideFootProp':list(OutsideFootProp),
-#                                  'avgOutsideHeelStartForce':list(avgOutsideHeelStartForce),'OutsideFootMedialProp':list(OutsideFootMedialProp), 'timeToPeak':list(timeToPeak),
-#                                  'RFD':list(RFD)
-#                                  })
          
   
-# outfileName = fPath + 'CompiledResultsTest2.csv'
+outfileName = fPath + 'CompiledResultsTest3.csv'
 
-# if os.path.exists(outfileName) == False:
+if save_on == 1:
+    if os.path.exists(outfileName) == False:
+        
+        outcomes.to_csv(outfileName, mode='a', header=True, index = False)
     
-#     outcomes.to_csv(outfileName, mode='a', header=True, index = False)
-
-# else:
-#     outcomes.to_csv(outfileName, mode='a', header=False, index = False) 
+    else:
+        outcomes.to_csv(outfileName, mode='a', header=False, index = False) 
+else:
+    print('Complete')
 
 
