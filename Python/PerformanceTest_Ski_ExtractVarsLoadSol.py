@@ -24,8 +24,9 @@ from tkinter import messagebox
 fPath = 'C:\\Users\\daniel.feeney\\Boa Technology Inc\\PFL Team - General\\Testing Segments\\Snow Performance\\\SkiValidation_Dec2022\Loadsol\\'
 fileExt = r".txt"
 entries = [fName for fName in os.listdir(fPath) if fName.endswith(fileExt)]
-check_data = 0
+check_data = 1
 freq = 100
+save_on = 1
 #entries = askopenfilenames(initialdir = fPath)
 
 
@@ -229,7 +230,7 @@ timeToPeak = []
 badFileList = []
 trialNo = []
 
-for ii, entry in enumerate(entries):
+for ii, entry in enumerate(entries[64:-1]):
     # try:
         fName = entry
         print(fName)
@@ -520,13 +521,16 @@ outcomes = pd.DataFrame({'Subject':list(sName),'Config':list(cName),'TurnDir': l
 
          
   
-outfileName = fPath + 'CompiledResultsTest3.csv'
+outfileName = fPath + 'CompiledResultsTest2.csv'
 
-if os.path.exists(outfileName) == False:
+if save_on == 1:
+    if os.path.exists(outfileName) == False:
+        
+        outcomes.to_csv(outfileName, mode='a', header=True, index = False)
     
-    outcomes.to_csv(outfileName, mode='a', header=True, index = False)
-
+    else:
+        outcomes.to_csv(outfileName, mode='a', header=False, index = False) 
 else:
-    outcomes.to_csv(outfileName, mode='a', header=False, index = False) 
+    print('Complete')
 
 
