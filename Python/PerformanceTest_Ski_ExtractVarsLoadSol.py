@@ -24,7 +24,7 @@ from tkinter import messagebox
 fPath = 'C:\\Users\\daniel.feeney\\Boa Technology Inc\\PFL Team - General\\Testing Segments\\Snow Performance\\\SkiValidation_Dec2022\Loadsol\\'
 fileExt = r".txt"
 entries = [fName for fName in os.listdir(fPath) if fName.endswith(fileExt)]
-check_data = 1
+check_data = 0
 freq = 100
 save_on = 1
 #entries = askopenfilenames(initialdir = fPath)
@@ -230,7 +230,7 @@ timeToPeak = []
 badFileList = []
 trialNo = []
 
-for ii, entry in enumerate(entries):
+for ii, entry in enumerate(entries[87:-1]):
     try:
         fName = entry
         print(fName)
