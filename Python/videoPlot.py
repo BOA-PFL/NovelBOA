@@ -249,12 +249,12 @@ dat['LToe_Filt'] = dat.LMedial_Filt + dat.LLateral_Filt
 RForce = []
 for ind, val in enumerate(dat.RTotal_Filt):
     #print(val)
-    if not ind % 10:
+    if not ind % 3:
         RForce.append(val)
 LForce = []
 for ind, val in enumerate(dat.LTotal_Filt):
     #print(val)
-    if not ind % 10:
+    if not ind % 3:
         LForce.append(val)
     
 # plt.plot(RForce)
