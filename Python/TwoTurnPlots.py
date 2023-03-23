@@ -269,26 +269,67 @@ elif Lpeaksboa[0] > Rpeaksboa[0]:
     Rpeaksbuck, Lpeaksbuck = EnsureTurnsAlternate(Rturn_detect,Lturn_detect,Rpeaksbuck,Lpeaksbuck)
 
 
+SMALL_SIZE = 14
+MEDIUM_SIZE = 16
+BIGGER_SIZE = 18
+
+plt.rc('font', size=SMALL_SIZE)          # controls default text sizes
+plt.rc('axes', titlesize=SMALL_SIZE)     # fontsize of the axes title
+plt.rc('axes', labelsize=MEDIUM_SIZE)    # fontsize of the x and y labels
+plt.rc('xtick', labelsize=SMALL_SIZE)    # fontsize of the tick labels
+plt.rc('ytick', labelsize=SMALL_SIZE)    # fontsize of the tick labels
+plt.rc('legend', fontsize=SMALL_SIZE)    # legend fontsize
+plt.rc('figure', titlesize=BIGGER_SIZE)  # fontsize of the figure title
+
+
 ## plotting ##
 lboastart = 50
 lboastop = 350
 lbuckstart = 0
 lbuckstop = 300
 plt.figure
-plt.subplot(1,2,1)
-plt.plot(np.arange(0,(lboastop-lboastart)),boaDat.LToe_Filt[lboastart:lboastop],color = '#003D4C',label = 'Left BOA Forefoot')
-plt.plot(np.arange(0,(lboastop-lboastart)),boaDat.LHeel_Filt[lboastart:lboastop],color = '#003D4C', linestyle = 'dashed',label = 'Left BOA Heel')
+#plt.subplot(1,2,1)
+plt.plot(np.arange(0,(lboastop-lboastart)),boaDat.LToe_Filt[lboastart:lboastop],color = '#00966C',label = 'Left BOA Forefoot')
+#plt.plot(np.arange(0,(lboastop-lboastart)),boaDat.LHeel_Filt[lboastart:lboastop],color = '#00966C', linestyle = 'dashed',label = 'Left BOA Heel')
 plt.plot(np.arange(0,(lbuckstop-lbuckstart)),buckDat.LToe_Filt[lbuckstart:lbuckstop],color = '#53565A', label = 'Left Buckle Forefoot')
-plt.plot(np.arange(0,(lbuckstop-lbuckstart)),buckDat.LHeel_Filt[lbuckstart:lbuckstop],color = '#53565A', linestyle = 'dashed',label = 'Left Buckle Heel')
+#plt.plot(np.arange(0,(lbuckstop-lbuckstart)),buckDat.LHeel_Filt[lbuckstart:lbuckstop],color = '#53565A', linestyle = 'dashed',label = 'Left Buckle Heel')
+plt.ylabel('Force (N)')
+plt.xlabel('Time (cs)')
+plt.title('Right Turn')
 plt.legend()
+
+
+## option 2
+lboastart = 150
+lboastop = 550
+lbuckstart = 100
+lbuckstop = 500
+plt.figure
+#plt.subplot(1,2,1)
+plt.plot(np.arange(0,(lboastop-lboastart)),boaDat.LToe_Filt[lboastart:lboastop],color = '#00966C',label = 'Left BOA Forefoot')
+plt.plot(np.arange(0,(lboastop-lboastart)),boaDat.RToe_Filt[lboastart:lboastop],color = '#DC582A', linestyle = 'dashed',label = 'Right BOA Forefoot')
+plt.plot(np.arange(0,(lbuckstop-lbuckstart)),buckDat.LToe_Filt[lbuckstart:lbuckstop],color = '#53565A', label = 'Left Buckle Forefoot')
+plt.plot(np.arange(0,(lbuckstop-lbuckstart)),buckDat.RToe_Filt[lbuckstart:lbuckstop],color = '#000000', linestyle = 'dashed',label = 'Right Buckle Forefoot')
+plt.ylabel('Force (N)')
+plt.xlabel('Time (cs)')
+plt.title('Two Consecutive Turn')
+plt.legend()
+
+
 boastart = 300
 boastop = 600
 buckstart = 250
 buckstop = 550
 plt.subplot(1,2,2)
-plt.plot(np.arange(0,(boastop-boastart)),boaDat.RToe_Filt[boastart:boastop],'#DC582A', label = 'Left BOA Forefoot')
-plt.plot(np.arange(0,(buckstop-buckstart)),buckDat.RToe_Filt[buckstart:buckstop],'k', label = 'Left Buckle Forefoot')
+plt.plot(np.arange(0,(boastop-boastart)),boaDat.RToe_Filt[boastart:boastop],'#DC582A', label = 'Right BOA Forefoot')
+plt.plot(np.arange(0,(boastop-boastart)),boaDat.RHeel_Filt[boastart:boastop],'#DC582A', linestyle = 'dashed',label = 'Right BOA Forefoot')
+plt.plot(np.arange(0,(buckstop-buckstart)),buckDat.RToe_Filt[buckstart:buckstop],color = '#53565A', label = 'Right Buckle Forefoot')
+plt.plot(np.arange(0,(buckstop-buckstart)),buckDat.RHeel_Filt[buckstart:buckstop],color = '#53565A', linestyle = 'dashed', label = 'Right Buckle Forefoot')
+plt.ylabel('Force (N)')
+plt.xlabel('Time (cs)')
 plt.legend()
+plt.title('Left Turn')
+plt.suptitle('Representative Subject Left and Right Turns')
 
 
 
