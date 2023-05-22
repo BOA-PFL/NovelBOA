@@ -238,7 +238,7 @@ OutHeelFracImpulseLate = []
 RFD = []
 RFDtime = []
 
-InsTotMinForce = []
+InsTotMaxForce = []
 
 
 
@@ -261,7 +261,8 @@ timeToPeak = []
 badFileList = []
 trialNo = []
 
-for ii, entry in enumerate(entries[17:-1]):
+
+for ii, entry in enumerate(entries):
     try:
         fName = entry
         print(fName)
@@ -407,7 +408,7 @@ for ii, entry in enumerate(entries[17:-1]):
                     OutHeelMaxForce.append(np.nanmax(dat.LHeel_Filt[value-window:value+window]))
                     
                     # Look at the Inside (or uphill) ski
-                    InsTotMinForce.append(np.nanmax(dat.RTotal_Filt[value-window:value+window]))
+                    InsTotMaxForce.append(np.nanmax(dat.RTotal_Filt[value-window:value+window]))
                     
                     # Examine a 0.5 second window around the peak of the turn
                     # for fraction of force  exerted on the foot of the outside (downhill) ski
@@ -481,8 +482,9 @@ for ii, entry in enumerate(entries[17:-1]):
                     OutToeMaxForce.append(np.nanmax(dat.RToe_Filt[value-window:value+window]))
                     OutHeelMaxForce.append(np.nanmax(dat.RHeel_Filt[value-window:value+window]))
                     
+                    
                     # Look at the Inside (or uphill) ski
-                    InsTotMinForce.append(np.nanmax(dat.LTotal_Filt[value-window:value+window]))
+                    InsTotMaxForce.append(np.nanmax(dat.LTotal_Filt[value-window:value+window]))
                     
                     # Examine a 0.5 second window around the peak of the turn
                     # for fraction of force  exerted on the foot of the outside (downhill) ski
@@ -546,12 +548,12 @@ outcomes = pd.DataFrame({'Subject':list(sName),'Config':list(cName),'TurnDir': l
                                  'OutLatFracImpulse':list(OutLatFracImpulse), 'OutToeFracImpulse':list(OutToeFracImpulse),
                                  'OutHeelFracImpulse':list(OutHeelFracImpulse), 'RFD':list(RFD), 'RFDtime':list(RFDtime),
                                  'OutHeelFracImpulseLate': list(OutHeelFracImpulseLate), 'OutToeFracImpulseEarly': list(OutToeFracImpulseEarly),
-                                 'OutTotAvgForce': list(OutTotAvgForce)
+                                 'OutTotAvgForce': list(OutTotAvgForce), 'InsideTotMaxForce':list(InsTotMaxForce)
                                  })
 
          
   
-outfileName = fPath + 'CompiledResultsTest3.csv'
+outfileName = fPath + 'CompiledResultsBothSides.csv'
 
 if save_on == 1:
     if os.path.exists(outfileName) == False:
