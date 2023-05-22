@@ -15,18 +15,19 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import os
+import scipy
 import scipy.signal as sig
 from scipy import signal
 import addcopyfighandler
 from tkinter.filedialog import askopenfilenames
 from tkinter import messagebox
 
-fPath = 'C:\\Users\\daniel.feeney\\Boa Technology Inc\\PFL Team - General\\Testing Segments\\Snow Performance\\\SkiValidation_Dec2022\Loadsol\\'
+fPath = 'C:\\Users\\eric.honert\\Boa Technology Inc\\PFL Team - General\\Testing Segments\\Snow Performance\\\SkiValidation_Dec2022\Loadsol\\'
 fileExt = r".txt"
 entries = [fName for fName in os.listdir(fPath) if fName.endswith(fileExt)]
 check_data = 0
 freq = 100
-save_on = 1
+save_on = 0
 #entries = askopenfilenames(initialdir = fPath)
 
 
@@ -188,6 +189,36 @@ def EnsureTurnsAlternate(turndet1,turndet2,peaks1,peaks2):
                 peaks1 = np.delete(peaks1,idx_remove)
     return(peaks1,peaks2)
 
+def intp_turns(var,turnidx):
+    """
+    Function to interpolate the variable of interest across a stride
+    (from foot contact to subsiquent foot contact) in order to plot the 
+    variable of interest over top each other
+
+    Parameters
+    ----------
+    var : list or numpy array
+        Variable of interest. Can be taken from a dataframe or from a numpy array
+    landings : list
+        Foot contact indicies
+
+    Returns
+    -------
+    intp_var : numpy array
+        Interpolated variable to 101 points with the number of columns dictated
+        by the number of strides.
+
+    """
+    # Preallocate
+    intp_var = np.zeros((101,len(turnidx)-1))
+    # Index through the strides
+    for ii in range(len(turnidx)-1):
+        dum = var[turnidx[ii]:turnidx[ii+1]]
+        f = scipy.interpolate.interp1d(np.arange(0,len(dum)),dum)
+        intp_var[:,ii] = f(np.linspace(0,len(dum)-1,101))
+        
+    return intp_var
+
 
 # Initiate discrete outcome variables
 OutTotMaxForce = []
@@ -229,6 +260,7 @@ Side = []
 timeToPeak = []
 badFileList = []
 trialNo = []
+
 
 for ii, entry in enumerate(entries):
     try:
